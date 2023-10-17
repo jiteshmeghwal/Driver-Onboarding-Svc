@@ -1,0 +1,25 @@
+[
+  {
+    "name": "Jitesh Meghwal",
+    "contact": {
+      "phone": 123456890,
+      "email": "abc@xyz.com"
+    },
+    "address": {
+      "addrLine1": "xyz",
+      "addrLine2": "abc",
+      "city": "Rockport",
+      "zipCode": "321654",
+      "state": "RJ"
+    },
+    "status": {
+      "cd": 1,
+      "desc": "Created"
+    },
+    "vehicle": {
+      "typeCd": 1,
+      "modelName": "Honda CBZ",
+      "vehicleNo": "RJ12AB3456"
+    }
+  }
+]
