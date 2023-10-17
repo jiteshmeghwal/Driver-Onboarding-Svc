@@ -1,0 +1,4 @@
+server:
+  port: 8080  # Set your desired port number
+  servlet:
+    context-path: /driver-onboard-svc # Set your desired context path
