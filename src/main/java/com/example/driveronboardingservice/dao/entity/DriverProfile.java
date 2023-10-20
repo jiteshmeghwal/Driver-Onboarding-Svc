@@ -15,7 +15,7 @@ public class DriverProfile {
     private String driverId;
     @Column(name = "addr_line_1", nullable = false)
     private String addrLine1;
-    @Column(name = "addr_line_2", nullable = false)
+    @Column(name = "addr_line_2")
     private String addrLine2;
     @Column(name = "city", nullable = false)
     private String city;

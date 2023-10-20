@@ -10,6 +10,7 @@ import java.sql.Timestamp;
 @Data
 public class Shipment {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "shipment_id")
     private Long id;
 
@@ -28,11 +29,13 @@ public class Shipment {
     @Column(name = "last_update_time")
     private Timestamp lastUpdateTime;
 
-    @ManyToOne
-    @JoinColumn(name = "driver_id")
-    private DriverProfile driver;
+    @Column(name = "driver_id", nullable = false)
+    private String driverId;
 
-    @OneToOne
-    @JoinColumn(name = "step_instance_id")
-    private OnboardingStepInstance stepInstance;
+    @Column(name = "step_id", nullable = false)
+    private Short stepId;
+
+    @ManyToOne
+    @JoinColumn(name = "driver_id", insertable = false, updatable = false)
+    private DriverProfile driver;
 }

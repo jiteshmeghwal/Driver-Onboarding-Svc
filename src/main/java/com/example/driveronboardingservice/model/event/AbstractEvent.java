@@ -1,12 +1,19 @@
 package com.example.driveronboardingservice.model.event;
 
-import lombok.Data;
+import com.example.driveronboardingservice.constant.EventType;
+import lombok.Getter;
+import lombok.Setter;
+import org.springframework.context.ApplicationEvent;
 
-import java.time.LocalDateTime;
+import java.time.Clock;
 
-@Data
-public class AbstractEvent {
-    protected String eventType;
+@Getter
+@Setter
+public class AbstractEvent extends ApplicationEvent {
+    protected EventType eventType;
     protected String userId;
-    protected LocalDateTime eventTimestamp;
+
+    public AbstractEvent(Object source, Clock clock) {
+        super(source, clock);
+    }
 }

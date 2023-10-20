@@ -5,8 +5,8 @@ import lombok.*;
 @Data
 @Builder
 public class OnboardingStepDTO {
-    private long stepId;
-    private short stepTypeCd;
+    private Short stepId;
+    private Short stepTypeCd;
     private String stepTypeDesc;
     private String stepTitle;
     private String stepDesc;

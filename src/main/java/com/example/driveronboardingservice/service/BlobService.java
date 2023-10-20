@@ -22,11 +22,11 @@ public class BlobService {
     @Autowired
     private BlobServiceClient blobServiceClient;
 
-    public void storeDocument(MultipartFile file, String blobName, String containerName) throws GenericException {
+    public void storeDocument(MultipartFile file, String containerName) throws GenericException {
         BlobContainerClient containerClient = blobServiceClient.getBlobContainerClient(containerName);
         if(!containerClient.exists()) containerClient.create();
 
-        BlockBlobClient client = containerClient.getBlobClient(blobName)
+        BlockBlobClient client = containerClient.getBlobClient(file.getOriginalFilename())
                 .getBlockBlobClient();
 
         // Upload the file to Azure Blob Storage

@@ -2,6 +2,7 @@ package com.example.driveronboardingservice.controller;
 
 import com.example.driveronboardingservice.model.VehicleDTO;
 import com.example.driveronboardingservice.service.VehicleService;
+import com.example.driveronboardingservice.util.RequestContextStore;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,7 +20,7 @@ public class VehicleController {
 
     @GetMapping
     public ResponseEntity<List<VehicleDTO>> getVehicle() {
-        List<VehicleDTO> vehicleList = vehicleService.getVehicles();
+        List<VehicleDTO> vehicleList = vehicleService.getVehicles(RequestContextStore.getUser().getUsername());
         if(vehicleList.isEmpty()) return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         return new ResponseEntity<>(vehicleList, HttpStatus.OK);
     }

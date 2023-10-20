@@ -9,15 +9,15 @@ public enum VehicleType {
     THREE_WHEELER((short)3, "3-Wheeler"),
     FOUR_WHEELER((short)4, "4-wheeler");
 
-    private final short code;
+    private final Short code;
     private final String type;
 
-    VehicleType(short code, String type) {
+    VehicleType(Short code, String type) {
         this.code = code;
         this.type = type;
     }
 
-    public short getCode() {
+    public Short getCode() {
         return code;
     }
 
@@ -25,7 +25,7 @@ public enum VehicleType {
         return type;
     }
 
-    public static VehicleType getByCode(short code) {
+    public static VehicleType getByCode(Short code) {
         for(VehicleType v : VehicleType.values()) {
             if(v.code == code) return v;
         }

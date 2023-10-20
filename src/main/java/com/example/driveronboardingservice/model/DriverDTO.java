@@ -7,6 +7,9 @@ import lombok.Data;
 @Builder
 public class DriverDTO {
     private String driverId;
+    private String name;
+    private String phone;
+    private String email;
     private String addrLine1;
     private String addrLine2;
     private String city;

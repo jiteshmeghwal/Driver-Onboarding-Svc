@@ -5,10 +5,12 @@ import com.example.driveronboardingservice.exception.ValidationException;
 import com.example.driveronboardingservice.model.DriverDTO;
 import com.example.driveronboardingservice.model.request.GenericDriverProfileRequest;
 import com.example.driveronboardingservice.service.DriverProfileService;
+import com.example.driveronboardingservice.util.RequestContextStore;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -20,6 +22,7 @@ public class DriverProfileController {
     DriverProfileService driverProfileService;
 
     @PostMapping
+    @Secured("USER")
     public ResponseEntity<Object> createDriverProfile(
             @RequestBody GenericDriverProfileRequest createProfileRequest) throws ValidationException {
         driverProfileService.createProfile(createProfileRequest);
@@ -28,6 +31,6 @@ public class DriverProfileController {
 
     @GetMapping
     public DriverDTO getDriverProfile() throws ResourceNotFoundException {
-        return driverProfileService.getDriverDetails();
+        return driverProfileService.getDriverDetails(RequestContextStore.getUser().getUsername());
     }
 }

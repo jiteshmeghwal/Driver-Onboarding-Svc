@@ -10,6 +10,7 @@ import java.sql.Timestamp;
 @Data
 public class Document {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "doc_id")
     private Long docId;
     @Column(name = "doc_name", nullable = false)
@@ -20,14 +21,11 @@ public class Document {
     private Timestamp validTill;
     @Column(name = "driver_id", nullable = false)
     private String driverId;
-    @Column(name = "step_instance_id", nullable = false)
-    private Long stepInstanceId;
+    @Column(name = "step_id", nullable = false)
+    private Short stepId;
 
     @ManyToOne
     @JoinColumn(name = "driver_id", insertable = false, updatable = false)
     private DriverProfile driver;
-    @OneToOne
-    @JoinColumn(name = "step_instance_id", insertable = false, updatable = false)
-    private OnboardingStepInstance stepInstance;
 
 }

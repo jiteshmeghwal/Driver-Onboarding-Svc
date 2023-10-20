@@ -1,11 +1,10 @@
 package com.example.driveronboardingservice.model.event;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 
-@Getter
-@Setter
-public class ShipmentUpdateEvent extends AbstractEvent{
+@Data
+public class ShipmentUpdateEvent{
     private String orderId;
-    private short statusCd;
+    private Short statusCd;
+    private String carrier;
 }

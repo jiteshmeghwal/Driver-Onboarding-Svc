@@ -2,7 +2,6 @@ package com.example.driveronboardingservice.controller;
 
 import com.example.driveronboardingservice.exception.GenericException;
 import com.example.driveronboardingservice.exception.ValidationException;
-import com.example.driveronboardingservice.model.DocumentMetadata;
 import com.example.driveronboardingservice.service.DocumentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -18,8 +17,8 @@ public class DocumentController {
     private DocumentService documentService;
 
     @PostMapping("/upload")
-    public void upload(@RequestParam("metadata")DocumentMetadata metadata, @RequestParam("file") MultipartFile file)
+    public void upload(@RequestParam("stepId")Short stepId, @RequestParam("file") MultipartFile file)
             throws GenericException, ValidationException {
-        documentService.upload(file, metadata);
+        documentService.upload(file, stepId);
     }
 }

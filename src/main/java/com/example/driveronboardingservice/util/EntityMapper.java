@@ -1,13 +1,10 @@
 package com.example.driveronboardingservice.util;
 
-import com.example.driveronboardingservice.dao.entity.Document;
 import com.example.driveronboardingservice.dao.entity.DriverProfile;
 import com.example.driveronboardingservice.dao.entity.Vehicle;
 import com.example.driveronboardingservice.model.auth.CustomUser;
-import com.example.driveronboardingservice.model.event.DocumentEvent;
 import com.example.driveronboardingservice.model.request.GenericDriverProfileRequest;
 
-import java.sql.Timestamp;
 import java.util.List;
 
 public class EntityMapper {
@@ -29,20 +26,12 @@ public class EntityMapper {
 
     public DriverProfile mapCreateDriverRequestToDriverProfile(GenericDriverProfileRequest createRequest) {
         DriverProfile profile = initDriverProfile();
+        profile.setAddrLine1(createRequest.getAddrLine1());
+        profile.setAddrLine2(createRequest.getAddrLine2());
         profile.setCity(createRequest.getCity());
         profile.setZipCode(createRequest.getZipCode());
         profile.setAvailable(false);
         profile.setVehicles(List.of(mapVehicleEntity(createRequest)));
         return profile;
-    }
-
-    public Document mapDocumentEventToDocumentEntity(DocumentEvent documentEvent) {
-        Document document = new Document();
-        document.setDocName(documentEvent.getDocumentMetadata().getDocName());
-        document.setValidTill(Timestamp.valueOf(documentEvent.getDocumentMetadata().getValidTill().atStartOfDay()));
-        document.setDocUploadTime(new Timestamp(documentEvent.getTimestamp()));
-        document.setDriverId(documentEvent.getUserId());
-        document.setStepInstanceId(documentEvent.getDocumentMetadata().getStepInstanceId());
-        return document;
     }
 }

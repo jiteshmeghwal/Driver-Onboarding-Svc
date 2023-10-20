@@ -8,6 +8,7 @@ import lombok.Data;
 @Data
 public class Vehicle {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "vehicle_id")
     private Long vehicleId;
     @Column(name = "vehicle_model", nullable = false)

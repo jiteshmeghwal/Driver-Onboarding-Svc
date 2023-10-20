@@ -8,12 +8,12 @@ public enum OnboardingStepType {
     SHIPMENT((short)4);
 
     @Getter
-    private short code;
-    OnboardingStepType(short code) {
+    private Short code;
+    OnboardingStepType(Short code) {
         this.code = code;
     }
 
-    public static OnboardingStepType getByCode(short code) {
+    public static OnboardingStepType getByCode(Short code) {
         for(OnboardingStepType stepType : OnboardingStepType.values()) {
             if(stepType.getCode() == code) return stepType;
         }

@@ -5,14 +5,15 @@ import com.example.driveronboardingservice.dao.entity.DriverProfile;
 import com.example.driveronboardingservice.exception.ResourceNotFoundException;
 import com.example.driveronboardingservice.exception.ValidationException;
 import com.example.driveronboardingservice.model.DriverDTO;
+import com.example.driveronboardingservice.model.auth.CustomUser;
 import com.example.driveronboardingservice.model.request.GenericDriverProfileRequest;
 import com.example.driveronboardingservice.repository.DriverProfileRepository;
+import com.example.driveronboardingservice.service.auth.CustomUserDetailsService;
 import com.example.driveronboardingservice.util.EntityMapper;
 import com.example.driveronboardingservice.util.RequestContextStore;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -25,47 +26,58 @@ public class DriverProfileService {
     @Autowired
     DriverProfileRepository driverProfileRepo;
     @Autowired
-    ValidatorService validatorService;
+    CustomUserDetailsService userDetailsService;
 
     public void createProfile(GenericDriverProfileRequest createRequest) throws ValidationException {
         logger.info("Received request to create driver profile");
-        validatorService.validateCreateProfileRequest(createRequest);
+        validateProfileNotExist();
         DriverProfile profile = entityMapper.mapCreateDriverRequestToDriverProfile(createRequest);
         driverProfileRepo.save(profile);
         logger.info("Driver Profile created");
     }
 
-    public void deleteProfile() throws ResourceNotFoundException {
-        logger.info("Received request to delete driver Profile");
-        String driverId = SecurityContextHolder.getContext().getAuthentication().getName();
+    private void validateProfileNotExist() throws ValidationException {
+        String driverId = RequestContextStore.getUser().getUsername();
+        Optional<DriverProfile> profile = driverProfileRepo.findByDriverId(driverId);
+        if(profile.isPresent()) {
+            throw new ValidationException(MessageConstants.PROFILE_ALREADY_EXIST.getCode(),
+                    MessageConstants.PROFILE_ALREADY_EXIST.getDesc());
+        }
+    }
+
+    public void deleteProfile(String driverId) throws ResourceNotFoundException {
+        logger.info("Received request to delete driver profile for user: {}", driverId);
         Optional<DriverProfile> driverProfile = driverProfileRepo.findByDriverId(driverId);
 
         if(driverProfile.isEmpty()) {
-            throw new ResourceNotFoundException(MessageConstants.PROFILE_DOES_NOT_EXISTS.getCode(),
-                    MessageConstants.PROFILE_DOES_NOT_EXISTS.getDesc());
+            throw new ResourceNotFoundException(MessageConstants.PROFILE_DOES_NOT_EXIST.getCode(),
+                    MessageConstants.PROFILE_DOES_NOT_EXIST.getDesc());
         }
         driverProfileRepo.delete(driverProfile.get());
-        logger.info("Deleted driver profile successfully");
+        logger.info("Deleted driver profile for user {} successfully", driverId);
     }
 
     public void updateProfile() {
     }
 
-    public DriverDTO getDriverDetails() throws ResourceNotFoundException {
+    public DriverDTO getDriverDetails(String driverId) throws ResourceNotFoundException {
 
-        String driverId = RequestContextStore.getUser().getUsername();
         Optional<DriverProfile> driverProfile = driverProfileRepo.findByDriverId(driverId);
 
         if(driverProfile.isEmpty()) {
-            throw new ResourceNotFoundException(MessageConstants.PROFILE_DOES_NOT_EXISTS.getCode(),
-                    MessageConstants.PROFILE_DOES_NOT_EXISTS.getDesc());
+            throw new ResourceNotFoundException(MessageConstants.PROFILE_DOES_NOT_EXIST.getCode(),
+                    MessageConstants.PROFILE_DOES_NOT_EXIST.getDesc());
         }
         return getDriverDetails(driverProfile.get());
     }
 
     private DriverDTO getDriverDetails(DriverProfile driver) {
+        CustomUser user = (CustomUser) userDetailsService.loadUserByUsername(driver.getDriverId());
         return DriverDTO.builder()
                 .driverId(driver.getDriverId())
+                .name(user.getFullName())
+                .phone(user.getPhone())
+                .email(user.getEmail())
                 .addrLine1(driver.getAddrLine1())
                 .addrLine2(driver.getAddrLine2())
                 .city(driver.getCity())
