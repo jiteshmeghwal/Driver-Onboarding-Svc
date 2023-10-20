@@ -9,8 +9,10 @@ public enum MessageConstants {
     STEP_IS_ALREADY_COMPLETE("ERR-7", "Step is already complete"),
     DOCUMENT_ALREADY_EXIST("ERR-8", "Document already exist for provided step," +
             " please delete to re-upload"),
-    SHIPMENT_NOT_FOUND("ERR-9", "Shipment with given order Id not found");
-
+    SHIPMENT_NOT_FOUND("ERR-9", "Shipment not found"),
+    FILE_NAME_IS_NULL("ERR-10", "Uploaded file name shouldn't be null"),
+    INVALID_REQUEST("ERR-11", "Invalid request"),
+    SHIPMENT_ALREADY_EXIST("ERR-12", "A shipment already exist for the user!");
     private final String code;
     private final String desc;
 

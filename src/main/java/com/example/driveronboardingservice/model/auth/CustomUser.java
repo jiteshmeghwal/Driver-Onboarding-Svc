@@ -1,13 +1,14 @@
 package com.example.driveronboardingservice.model.auth;
 
-import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
-import org.springframework.security.core.CredentialsContainer;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.User;
 
 import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Custom User class to represent authenticated user
@@ -15,53 +16,22 @@ import java.util.Collection;
  */
 @Getter
 @Setter
-@Builder
-public class CustomUser implements UserDetails, CredentialsContainer {
-    private String username;
-    private String password;
-    private Collection<? extends GrantedAuthority> authorities;
+public class CustomUser extends User {
     private String fullName;
     private String phone;
     private String email;
-    private String[] roles;
 
-    @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-        return authorities;
+    public CustomUser(String username, String password, List<String> roles,
+                      String fullName, String phone, String email) {
+        super(username, password, mapToGrantedAuthorities(roles));
+        this.fullName = fullName;
+        this.phone = phone;
+        this.email = email;
     }
 
-    @Override
-    public String getPassword() {
-        return password;
-    }
-
-    @Override
-    public String getUsername() {
-        return username;
-    }
-
-    @Override
-    public boolean isAccountNonExpired() {
-        return true;
-    }
-
-    @Override
-    public boolean isAccountNonLocked() {
-        return true;
-    }
-
-    @Override
-    public boolean isCredentialsNonExpired() {
-        return true;
-    }
-
-    @Override
-    public boolean isEnabled() {
-        return true;
-    }
-
-    @Override
-    public void eraseCredentials() {
-
+    private static Collection<? extends GrantedAuthority> mapToGrantedAuthorities(List<String> roles) {
+        return roles.stream()
+                .map(SimpleGrantedAuthority::new)
+                .collect(Collectors.toList());
     }
 }

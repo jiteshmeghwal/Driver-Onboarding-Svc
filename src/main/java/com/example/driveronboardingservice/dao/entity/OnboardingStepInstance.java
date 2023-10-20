@@ -15,4 +15,6 @@ public class OnboardingStepInstance {
     private OnboardingStepInstancePK onboardingStepInstancePK;
     @Column(name = "complete_ind", nullable = false)
     private boolean isComplete;
+    @Column(name = "additional_comments")
+    private String additionalComments;
 }

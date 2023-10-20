@@ -35,11 +35,10 @@ public class OnboardingStepController {
         return new ResponseEntity<>(onboardingStep.get(), HttpStatus.OK);
     }
 
-    @PutMapping("/mark-incomplete")
+    @PutMapping
     @Secured("ROLE_ADMIN")
-    public void markStepIncomplete(@RequestParam("driverId") String driverId,
-                                   @RequestParam("stepId") Short stepId)
+    public void updateStep(@RequestBody OnboardingStepDTO onboardingStepDTO)
             throws ValidationException {
-        onboardingStepService.updateCompleteStatus(stepId, driverId, false);
+        onboardingStepService.updateStep(onboardingStepDTO);
     }
 }

@@ -2,6 +2,7 @@ package com.example.driveronboardingservice.client;
 
 import com.example.driveronboardingservice.model.request.CreateOrderRequest;
 import com.example.driveronboardingservice.model.response.CreateOrderResponse;
+import com.google.gson.Gson;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,6 +29,7 @@ public class TrackingDeviceOrderClient {
 
     @Retryable(retryFor = HttpServerErrorException.class, maxAttempts = 3, backoff = @Backoff(delay = 100))
     public CreateOrderResponse createOrder(CreateOrderRequest request) {
+        logger.info("Create order request: {}", new Gson().toJson(request));
         HttpEntity<CreateOrderRequest> requestHttpEntity = new HttpEntity<>(request, getHttpHeaders());
         ResponseEntity<CreateOrderResponse> createOrderResponse =
                      restTemplate.exchange(

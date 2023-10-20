@@ -22,6 +22,7 @@ import java.util.Optional;
 public class DriverProfileService {
     private static final Logger logger = LogManager.getLogger(DriverProfileService.class);
     private static final EntityMapper entityMapper = new EntityMapper();
+    private static final ValidatorService validatorService = new ValidatorService();
 
     @Autowired
     DriverProfileRepository driverProfileRepo;
@@ -29,8 +30,9 @@ public class DriverProfileService {
     CustomUserDetailsService userDetailsService;
 
     public void createProfile(GenericDriverProfileRequest createRequest) throws ValidationException {
-        logger.info("Received request to create driver profile");
+        logger.info("Received request to create driver profile: {}", createRequest);
         validateProfileNotExist();
+        validatorService.validateCreateProfileRequest(createRequest);
         DriverProfile profile = entityMapper.mapCreateDriverRequestToDriverProfile(createRequest);
         driverProfileRepo.save(profile);
         logger.info("Driver Profile created");

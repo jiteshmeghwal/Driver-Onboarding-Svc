@@ -1,6 +1,7 @@
 package com.example.driveronboardingservice.constant;
 
 public enum ShipmentStatus {
+    CANCELLED((short)0),
     ORDERED((short)1),
     SHIPPED((short)2),
     DELIVERED((short)3);

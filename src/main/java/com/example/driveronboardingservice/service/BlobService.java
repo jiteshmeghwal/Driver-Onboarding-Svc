@@ -1,6 +1,8 @@
 package com.example.driveronboardingservice.service;
 
-import com.azure.storage.blob.*;
+import com.azure.storage.blob.BlobClient;
+import com.azure.storage.blob.BlobContainerClient;
+import com.azure.storage.blob.BlobServiceClient;
 import com.azure.storage.blob.specialized.BlockBlobClient;
 import com.example.driveronboardingservice.constant.MessageConstants;
 import com.example.driveronboardingservice.exception.GenericException;
@@ -22,11 +24,11 @@ public class BlobService {
     @Autowired
     private BlobServiceClient blobServiceClient;
 
-    public void storeDocument(MultipartFile file, String containerName) throws GenericException {
+    public void storeDocument(MultipartFile file, String fileName, String containerName) throws GenericException {
         BlobContainerClient containerClient = blobServiceClient.getBlobContainerClient(containerName);
         if(!containerClient.exists()) containerClient.create();
 
-        BlockBlobClient client = containerClient.getBlobClient(file.getOriginalFilename())
+        BlockBlobClient client = containerClient.getBlobClient(fileName)
                 .getBlockBlobClient();
 
         // Upload the file to Azure Blob Storage
@@ -39,14 +41,19 @@ public class BlobService {
         }
     }
 
-    public byte[] retrieveDocument(String fileName, String containerName) throws IOException, ResourceNotFoundException {
+    public byte[] retrieveDocument(String fileName, String containerName) throws ResourceNotFoundException, GenericException {
         BlobContainerClient containerClient = blobServiceClient.getBlobContainerClient(containerName);
         BlobClient blobClient = containerClient.getBlobClient(fileName);
 
         if (blobClient.exists()) {
-            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-            blobClient.download(outputStream);
-            return outputStream.toByteArray();
+            try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
+                blobClient.download(outputStream);
+                return outputStream.toByteArray();
+            } catch (IOException exception) {
+                logger.error("failed downloading file with error message : {}",exception.getMessage());
+                throw new GenericException(MessageConstants.GENERIC_ERROR.getCode(),
+                        MessageConstants.GENERIC_ERROR.getDesc());
+            }
         } else {
             throw new ResourceNotFoundException(MessageConstants.DOCUMENT_NOT_FOUND.getCode(),
                     MessageConstants.DOCUMENT_NOT_FOUND.getDesc());

@@ -6,27 +6,19 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class CustomUserDetailsService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String username) {
+        String password = SecurityConfig.passwordEncoder().encode("password");
         if("user".equals(username)) {
-            return CustomUser.builder()
-                .username("user")
-                .fullName("user")
-                .email("user@xyz.com")
-                .phone("9876443210")
-                .password(SecurityConfig.passwordEncoder().encode("password"))
-                .roles(new String[]{"USER"}).build();
-
+            return new CustomUser("user", password
+                    , List.of("USER"), "user", "9876443210", "user@xyz.com");
         } else if("admin".equals(username)) {
-            return CustomUser.builder()
-                .username("admin")
-                .fullName("admin")
-                .email("admin@xyz.com")
-                .phone("8769543210")
-                .password(SecurityConfig.passwordEncoder().encode("password"))
-                .roles(new String[]{"ADMIN"}).build();
+            return new CustomUser("admin", password,
+                    List.of("ADMIN"), "admin", "8769543210", "admin@xyz.com");
         }
         return null;
     }

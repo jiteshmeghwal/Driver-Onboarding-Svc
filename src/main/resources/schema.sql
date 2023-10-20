@@ -55,7 +55,7 @@ WHERE object_id = OBJECT_ID(N'[dbo].[document]') AND type in (N'U'))
 BEGIN
 CREATE TABLE dbo.document (
     doc_id BIGINT PRIMARY KEY IDENTITY(1,1),
-    doc_name VARCHAR(10) NOT NULL,
+    doc_name VARCHAR(50) NOT NULL,
     doc_upload_time DATETIME2 NOT NULL,
     valid_till DATETIME2,
     step_id TINYINT NOT NULL,

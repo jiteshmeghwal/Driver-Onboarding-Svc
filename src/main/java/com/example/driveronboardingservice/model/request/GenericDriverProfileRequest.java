@@ -1,8 +1,10 @@
 package com.example.driveronboardingservice.model.request;
 
 import lombok.Data;
+import lombok.ToString;
 
 @Data
+@ToString
 public class GenericDriverProfileRequest {
     private String addrLine1;
     private String addrLine2;
