@@ -27,3 +27,6 @@
 - All the shipment status updates are sent by the 3rd party service to our service using kafka.
 - once shipment is delivered to the driver, we mark the last (shipment) step as complete.
 - once all onboarding steps are completed, an option is enabled on the client side for the user to mark itself as available to drive.
+
+### ER diagram
+<img src = "./src/main/resources/templates/ERdiagram.jpg" alt="ER diagram"/>
