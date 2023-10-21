@@ -39,7 +39,8 @@ public class DocumentController {
     }
 
     @DeleteMapping
-    public void delete(@RequestHeader("stepId") Short stepId) throws ValidationException, ResourceNotFoundException {
+    public void delete(@RequestHeader("stepId") Short stepId) throws ValidationException,
+            ResourceNotFoundException {
         documentService.delete(stepId, RequestContextStore.getUser().getUsername());
     }
 }
