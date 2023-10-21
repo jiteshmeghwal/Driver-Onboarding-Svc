@@ -3,7 +3,7 @@ package com.example.driveronboardingservice.service;
 import com.example.driveronboardingservice.constant.EventType;
 import com.example.driveronboardingservice.constant.MessageConstants;
 import com.example.driveronboardingservice.constant.OnboardingStepType;
-import com.example.driveronboardingservice.dao.entity.Document;
+import com.example.driveronboardingservice.entity.Document;
 import com.example.driveronboardingservice.exception.GenericException;
 import com.example.driveronboardingservice.exception.ResourceNotFoundException;
 import com.example.driveronboardingservice.exception.ValidationException;
@@ -17,7 +17,6 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
 import java.sql.Timestamp;
 import java.time.Clock;
 import java.time.Instant;

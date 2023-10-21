@@ -1,7 +1,7 @@
 package com.example.driveronboardingservice.service;
 
 import com.example.driveronboardingservice.constant.VehicleType;
-import com.example.driveronboardingservice.dao.entity.Vehicle;
+import com.example.driveronboardingservice.entity.Vehicle;
 import com.example.driveronboardingservice.model.VehicleDTO;
 import com.example.driveronboardingservice.repository.VehicleRepository;
 import org.springframework.beans.factory.annotation.Autowired;

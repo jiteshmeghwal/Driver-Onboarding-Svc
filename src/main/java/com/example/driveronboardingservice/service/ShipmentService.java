@@ -4,22 +4,20 @@ import com.example.driveronboardingservice.client.TrackingDeviceOrderClient;
 import com.example.driveronboardingservice.constant.MessageConstants;
 import com.example.driveronboardingservice.constant.OnboardingStepType;
 import com.example.driveronboardingservice.constant.ShipmentStatus;
-import com.example.driveronboardingservice.dao.entity.Shipment;
+import com.example.driveronboardingservice.entity.Shipment;
 import com.example.driveronboardingservice.exception.ResourceNotFoundException;
 import com.example.driveronboardingservice.exception.ValidationException;
-import com.example.driveronboardingservice.model.DriverDTO;
 import com.example.driveronboardingservice.model.OnboardingStepDTO;
 import com.example.driveronboardingservice.model.ShipmentDTO;
-import com.example.driveronboardingservice.model.auth.CustomUser;
-import com.example.driveronboardingservice.model.request.*;
+import com.example.driveronboardingservice.model.request.CreateShipmentRequest;
 import com.example.driveronboardingservice.model.response.CreateOrderResponse;
 import com.example.driveronboardingservice.repository.ShipmentRepository;
-import com.example.driveronboardingservice.service.auth.CustomUserDetailsService;
-import jakarta.transaction.Transactional;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
 
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -32,10 +30,6 @@ public class ShipmentService {
     @Autowired
     private ShipmentRepository shipmentRepository;
     @Autowired
-    private CustomUserDetailsService customUserDetailsService;
-    @Autowired
-    private DriverProfileService driverProfileService;
-    @Autowired
     private OnboardingStepService onboardingStepService;
     @Autowired
     private TrackingDeviceOrderClient trackingDeviceOrderClient;
@@ -43,32 +37,24 @@ public class ShipmentService {
     public void createShipment(CreateShipmentRequest createRequest) throws ResourceNotFoundException,
             ValidationException {
         validateOnboardingStep(createRequest.getStepId(), createRequest.getDriverId());
-        validateShipmentNotExist(createRequest.getStepId(), createRequest.getDriverId());
-        DriverDTO driver = driverProfileService.getDriverDetails(createRequest.getDriverId());
-        CustomUser userDetails = (CustomUser) customUserDetailsService.loadUserByUsername(
-                createRequest.getDriverId());
 
-        Contact contact = Contact.builder()
-                .email(userDetails.getEmail()).phone(userDetails.getPhone()).build();
-        Address address = Address.builder()
-                .addrLine1(driver.getAddrLine1()).addrLine2(driver.getAddrLine2())
-                .city(driver.getCity()).zipCode(driver.getZipCode()).build();
-        ShipTo shipTo = ShipTo.builder()
-                .name(userDetails.getFullName())
-                .address(address).contact(contact).build();
-        CreateOrderResponse response = trackingDeviceOrderClient.createOrder(
-                CreateOrderRequest.builder()
-                        .shipTo(shipTo).build()
-        );
-        createShipment(
-                ShipmentDTO.builder()
-                        .orderId(response.getOrderId())
-                        .driverId(driver.getDriverId())
-                        .stepId(createRequest.getStepId()).build()
-        );
+        try {
+            CreateOrderResponse response = trackingDeviceOrderClient.createOrder(createRequest.getDriverId());
+            createShipment(
+                    ShipmentDTO.builder()
+                            .orderId(response.getOrderId())
+                            .driverId(createRequest.getDriverId())
+                            .stepId(createRequest.getStepId()).build()
+            );
+        } catch (HttpServerErrorException | HttpClientErrorException exception) {
+            createShipment(ShipmentDTO.builder()
+                    .status(ShipmentStatus.FAILED.getCode())
+                    .driverId(createRequest.getDriverId())
+                    .stepId(createRequest.getStepId())
+                    .build());
+        }
     }
 
-    @Transactional
     public void createShipment(ShipmentDTO shipmentDTO) {
         Shipment shipment = new Shipment();
         shipment.setOrderId(shipmentDTO.getOrderId());
@@ -79,21 +65,14 @@ public class ShipmentService {
         shipmentRepository.save(shipment);
     }
 
-    private void validateShipmentNotExist(Short stepId, String driverId) throws ValidationException {
-        Optional<Shipment> shipment = shipmentRepository.findByStepIdAndDriverId(stepId, driverId);
-        if(shipment.isPresent()) {
-            throw new ValidationException(MessageConstants.SHIPMENT_ALREADY_EXIST.getCode(),
-                    MessageConstants.SHIPMENT_ALREADY_EXIST.getDesc());
-        }
-    }
-
     private void validateOnboardingStep(Short stepId, String driverId) throws ValidationException {
         Optional<OnboardingStepDTO> onboardingStepDTO = onboardingStepService.getNextIncompleteStep(driverId);
 
         if (onboardingStepDTO.isEmpty() ||
                 ( !OnboardingStepType.SHIPMENT.getCode().equals(onboardingStepDTO.get().getStepTypeCd()) ||
                         !onboardingStepDTO.get().getStepId().equals(stepId))) {
-            throw new ValidationException(MessageConstants.INVALID_STEP.getCode(), MessageConstants.INVALID_STEP.getDesc());
+            throw new ValidationException(MessageConstants.INVALID_STEP.getCode(),
+                    MessageConstants.INVALID_STEP.getDesc());
         }
     }
 
@@ -129,6 +108,7 @@ public class ShipmentService {
                 .orderId(shipment.getOrderId())
                 .carrier(shipment.getCarrier())
                 .status(shipment.getStatus())
+                .statusDesc(ShipmentStatus.getByCode(shipment.getStatus()).name())
                 .driverId(shipment.getDriverId())
                 .stepId(shipment.getStepId())
                 .build();

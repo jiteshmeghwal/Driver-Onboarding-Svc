@@ -1,7 +1,7 @@
 package com.example.driveronboardingservice.constant;
 
 public enum ShipmentStatus {
-    CANCELLED((short)0),
+    FAILED((short)0),
     ORDERED((short)1),
     SHIPPED((short)2),
     DELIVERED((short)3);
@@ -13,5 +13,12 @@ public enum ShipmentStatus {
 
     public Short getCode() {
         return code;
+    }
+
+    public static ShipmentStatus getByCode(Short code) {
+        for(ShipmentStatus shipmentStatus : ShipmentStatus.values()) {
+            if(shipmentStatus.getCode().equals(code)) return shipmentStatus;
+        }
+        return null;
     }
 }

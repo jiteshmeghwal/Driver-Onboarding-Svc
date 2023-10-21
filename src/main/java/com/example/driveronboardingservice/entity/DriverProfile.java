@@ -1,4 +1,4 @@
-package com.example.driveronboardingservice.dao.entity;
+package com.example.driveronboardingservice.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;

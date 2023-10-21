@@ -1,7 +1,7 @@
 package com.example.driveronboardingservice.repository;
 
-import com.example.driveronboardingservice.dao.entity.OnboardingStepInstance;
-import com.example.driveronboardingservice.dao.entity.OnboardingStepInstancePK;
+import com.example.driveronboardingservice.entity.OnboardingStepInstance;
+import com.example.driveronboardingservice.entity.OnboardingStepInstancePK;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;

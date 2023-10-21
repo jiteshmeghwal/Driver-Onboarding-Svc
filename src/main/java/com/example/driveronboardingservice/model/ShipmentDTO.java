@@ -10,6 +10,7 @@ public class ShipmentDTO {
     private String orderId;
     private String carrier;
     private Short status;
+    private String statusDesc;
     private String driverId;
     private Short stepId;
 }

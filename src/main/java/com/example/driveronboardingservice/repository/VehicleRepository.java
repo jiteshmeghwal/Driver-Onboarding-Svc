@@ -1,6 +1,6 @@
 package com.example.driveronboardingservice.repository;
 
-import com.example.driveronboardingservice.dao.entity.Vehicle;
+import com.example.driveronboardingservice.entity.Vehicle;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 

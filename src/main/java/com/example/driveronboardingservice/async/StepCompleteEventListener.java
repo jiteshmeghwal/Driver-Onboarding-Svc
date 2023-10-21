@@ -13,14 +13,15 @@ import jakarta.transaction.Transactional;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.EventListener;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.stereotype.Component;
 
 import java.util.Optional;
 
-public class StepCompleteEventListener implements ApplicationListener<StepCompleteEvent> {
+@Component
+public class StepCompleteEventListener {
     private static final Logger logger = LogManager.getLogger(StepCompleteEventListener.class);
 
     @Autowired
@@ -39,12 +40,11 @@ public class StepCompleteEventListener implements ApplicationListener<StepComple
     private ShipmentService shipmentService;
 
 
-    @Override
     @Async
     @Transactional
     @EventListener
     @Retryable
-    public void onApplicationEvent(StepCompleteEvent event) {
+    public void onStepCompletion(StepCompleteEvent event) {
         logger.info("Received stepId {} completion event for user {}",
                 event.getOnboardingStep().getStepId(), event.getUserId());
 

@@ -1,7 +1,7 @@
 package com.example.driveronboardingservice.service;
 
 import com.example.driveronboardingservice.constant.MessageConstants;
-import com.example.driveronboardingservice.dao.entity.DriverProfile;
+import com.example.driveronboardingservice.entity.DriverProfile;
 import com.example.driveronboardingservice.exception.ResourceNotFoundException;
 import com.example.driveronboardingservice.exception.ValidationException;
 import com.example.driveronboardingservice.model.DriverDTO;

@@ -30,3 +30,6 @@
 
 ### ER diagram
 <img src = "./src/main/resources/templates/ERdiagram.jpg" alt="ER diagram"/>
+
+### Sequence diagram
+<img src = "./src/main/resources/templates/sequence_diagram.jpg" alt="sequence diagram"/>

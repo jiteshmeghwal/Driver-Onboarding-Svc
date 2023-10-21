@@ -1,7 +1,7 @@
 package com.example.driveronboardingservice.util;
 
-import com.example.driveronboardingservice.dao.entity.DriverProfile;
-import com.example.driveronboardingservice.dao.entity.Vehicle;
+import com.example.driveronboardingservice.entity.DriverProfile;
+import com.example.driveronboardingservice.entity.Vehicle;
 import com.example.driveronboardingservice.model.auth.CustomUser;
 import com.example.driveronboardingservice.model.request.GenericDriverProfileRequest;
 
