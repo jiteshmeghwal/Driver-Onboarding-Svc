@@ -2,15 +2,9 @@ package com.example.driveronboardingservice.async;
 
 import com.example.driveronboardingservice.client.TrackingDeviceOrderClient;
 import com.example.driveronboardingservice.constant.OnboardingStepType;
-import com.example.driveronboardingservice.exception.ResourceNotFoundException;
-import com.example.driveronboardingservice.exception.ValidationException;
-import com.example.driveronboardingservice.model.DriverDTO;
 import com.example.driveronboardingservice.model.OnboardingStepDTO;
-import com.example.driveronboardingservice.model.ShipmentDTO;
-import com.example.driveronboardingservice.model.auth.CustomUser;
 import com.example.driveronboardingservice.model.event.StepCompleteEvent;
-import com.example.driveronboardingservice.model.request.*;
-import com.example.driveronboardingservice.model.response.CreateOrderResponse;
+import com.example.driveronboardingservice.model.request.CreateShipmentRequest;
 import com.example.driveronboardingservice.service.DriverProfileService;
 import com.example.driveronboardingservice.service.OnboardingStepService;
 import com.example.driveronboardingservice.service.ShipmentService;

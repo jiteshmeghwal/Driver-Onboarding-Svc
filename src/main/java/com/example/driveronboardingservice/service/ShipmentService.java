@@ -15,6 +15,7 @@ import com.example.driveronboardingservice.model.request.*;
 import com.example.driveronboardingservice.model.response.CreateOrderResponse;
 import com.example.driveronboardingservice.repository.ShipmentRepository;
 import com.example.driveronboardingservice.service.auth.CustomUserDetailsService;
+import jakarta.transaction.Transactional;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -67,6 +68,7 @@ public class ShipmentService {
         );
     }
 
+    @Transactional
     public void createShipment(ShipmentDTO shipmentDTO) {
         Shipment shipment = new Shipment();
         shipment.setOrderId(shipmentDTO.getOrderId());
