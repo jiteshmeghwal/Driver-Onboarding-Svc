@@ -20,7 +20,7 @@ public class OnboardingStepController {
     private OnboardingStepService onboardingStepService;
 
     @GetMapping("/{driverId}")
-    @Secured("ROLE_ADMIN")
+    @Secured("ADMIN")
     public List<OnboardingStepDTO> getOnboardingStepsByDriver(@PathVariable("driverId") String driverId) {
         return onboardingStepService.getOnboardingStepsByDriver(driverId);
     }
@@ -36,7 +36,7 @@ public class OnboardingStepController {
     }
 
     @PutMapping
-    @Secured("ROLE_ADMIN")
+    @Secured("ADMIN")
     public void updateStep(@RequestBody OnboardingStepDTO onboardingStepDTO)
             throws ValidationException {
         onboardingStepService.updateStep(onboardingStepDTO);
