@@ -61,7 +61,7 @@ CREATE TABLE dbo.document (
     step_id TINYINT NOT NULL,
     driver_id VARCHAR(6) NOT NULL,
     FOREIGN KEY (driver_id) REFERENCES dbo.driver_profile(driver_id),
-    FOREIGN KEY (driver_id, step_id) REFERENCES dbo.onboarding_step_instance(driver_id, step_id),
+    FOREIGN KEY (step_id) REFERENCES dbo.onboarding_step(step_id),
     CONSTRAINT CK_unique_driver_document UNIQUE CLUSTERED (step_id, driver_id)
 )
 END;
@@ -80,6 +80,6 @@ CREATE TABLE dbo.shipment (
     step_id TINYINT NOT NULL,
     driver_id VARCHAR(6) NOT NULL,
     FOREIGN KEY (driver_id) REFERENCES dbo.driver_profile(driver_id),
-    FOREIGN KEY (driver_id, step_id) REFERENCES dbo.onboarding_step_instance(driver_id, step_id),
+    FOREIGN KEY (step_id) REFERENCES dbo.onboarding_step(step_id)
 )
 END;

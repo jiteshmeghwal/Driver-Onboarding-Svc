@@ -15,6 +15,7 @@ import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.time.Clock;
@@ -116,8 +117,13 @@ public class OnboardingStepService {
         onboardingStepInstance.setAdditionalComments(onboardingStepDTO.getAdditionalComments());
         onboardingStepInstanceRepository.save(onboardingStepInstance);
         if(onboardingStepDTO.isComplete()) {
-            applicationEventPublisher.publishEvent(getStepCompleteEvent(onboardingStepDTO));
+            publishEvent(getStepCompleteEvent(onboardingStepDTO));
         }
+    }
+
+    @Async
+    public void publishEvent(StepCompleteEvent stepCompleteEvent) {
+        applicationEventPublisher.publishEvent(stepCompleteEvent);
     }
     
     public OnboardingStepDTO getOnboardingStep(Short stepId, String driverId) throws ValidationException {

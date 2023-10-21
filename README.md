@@ -29,7 +29,7 @@
 - once all onboarding steps are completed, an option is enabled on the client side for the user to mark itself as available to drive.
 
 ### ER diagram
-<img src = "./src/main/resources/templates/ERdiagram.jpg" alt="ER diagram"/>
+<img src = "./src/main/resources/templates/ERdiagram2.jpg" alt="ER diagram"/>
 
 ### Sequence diagram
 <img src = "./src/main/resources/templates/sequence_diagram.jpg" alt="sequence diagram"/>

@@ -49,8 +49,8 @@ public class DocumentService {
         documentRepository.save(createDocument(documentDTO));
         
         blobService.storeDocument(file, documentDTO.getDocName(), documentDTO.getDriverId());
-        
-        eventPublisher.publishEvent(getStepCompleteEvent(onboardingStepDTO, documentDTO.getDriverId()));
+
+        onboardingStepService.publishEvent(getStepCompleteEvent(onboardingStepDTO, documentDTO.getDriverId()));
     }
 
     public void delete(Short stepId, String driverId) throws ResourceNotFoundException, ValidationException {

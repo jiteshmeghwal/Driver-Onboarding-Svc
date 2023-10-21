@@ -2,6 +2,8 @@ package com.example.driveronboardingservice.async;
 
 import com.example.driveronboardingservice.client.TrackingDeviceOrderClient;
 import com.example.driveronboardingservice.constant.OnboardingStepType;
+import com.example.driveronboardingservice.entity.OnboardingStep;
+import com.example.driveronboardingservice.exception.ValidationException;
 import com.example.driveronboardingservice.model.OnboardingStepDTO;
 import com.example.driveronboardingservice.model.event.StepCompleteEvent;
 import com.example.driveronboardingservice.model.request.CreateShipmentRequest;
@@ -18,6 +20,7 @@ import org.springframework.retry.annotation.Retryable;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.Optional;
 
 @Component
@@ -44,9 +47,24 @@ public class StepCompleteEventListener {
     @Transactional
     @EventListener
     @Retryable
-    public void onStepCompletion(StepCompleteEvent event) {
+    public void onStepCompletion(StepCompleteEvent event) throws ValidationException {
         logger.info("Received stepId {} completion event for user {}",
                 event.getOnboardingStep().getStepId(), event.getUserId());
+        OnboardingStepType completedStepType = OnboardingStepType
+                .getByCode(event.getOnboardingStep().getStepTypeCd());
+        switch(completedStepType) {
+            case DOC_UPLOAD :
+                    Optional<OnboardingStepDTO> backgroundVerificationStep = onboardingStepService
+                            .getOnboardingStepsByDriver(event.getUserId())
+                            .stream()
+                            .filter(onboardingStep -> OnboardingStepType.BACKGROUND_VERIFICATION.getCode()
+                                    .equals(onboardingStep.getStepTypeCd()))
+                            .findFirst();
+                    if(backgroundVerificationStep.isPresent()) {
+                        onboardingStepService.updateCompleteStatus(backgroundVerificationStep.get().getStepId(),
+                                event.getUserId(), false);
+                    }
+        }
 
         Optional<OnboardingStepDTO> nextIncompleteStep = onboardingStepService.getNextIncompleteStep(
                 event.getUserId()
@@ -54,7 +72,7 @@ public class StepCompleteEventListener {
         if(nextIncompleteStep.isPresent()) {
             if (OnboardingStepType.SHIPMENT.getCode().equals(nextIncompleteStep.get().getStepTypeCd())) {
                 try {
-                    shipmentService.createShipment(new CreateShipmentRequest(event.getOnboardingStep().getStepId(), event.getUserId()));
+                    shipmentService.createShipment(new CreateShipmentRequest(nextIncompleteStep.get().getStepId(), event.getUserId()));
                 } catch (Exception e) {
                     logger.error("Failed creating shipment");
                 }
