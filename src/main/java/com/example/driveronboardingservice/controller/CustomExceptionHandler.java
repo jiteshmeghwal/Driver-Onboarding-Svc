@@ -1,5 +1,6 @@
 package com.example.driveronboardingservice.controller;
 
+import com.example.driveronboardingservice.exception.ForbiddenException;
 import com.example.driveronboardingservice.exception.GenericException;
 import com.example.driveronboardingservice.exception.ResourceNotFoundException;
 import com.example.driveronboardingservice.exception.ValidationException;
@@ -26,6 +27,11 @@ public class CustomExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<Object> handleResourceNotFoundException(ResourceNotFoundException ex, WebRequest request) {
         return new ResponseEntity<>(new ErrorResponse(ex.getCode(), ex.getDesc()), HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler
+    public ResponseEntity<Object> handleForbiddenException(ForbiddenException ex, WebRequest request) {
+        return new ResponseEntity<>(new ErrorResponse(ex.getCode(), ex.getDesc()), HttpStatus.FORBIDDEN);
     }
 
 }
