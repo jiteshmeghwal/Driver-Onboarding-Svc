@@ -13,4 +13,5 @@ public class GenericDriverProfileRequest {
     private String vehicleRegNo;
     private String vehicleModel;
     private Short vehicleTypeCode;
+    private Boolean online;
 }

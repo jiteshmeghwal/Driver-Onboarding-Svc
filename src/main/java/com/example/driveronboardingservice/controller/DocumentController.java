@@ -21,7 +21,8 @@ public class DocumentController {
 
     @PostMapping
     public void upload(@RequestHeader("stepId")Short stepId,
-                       @RequestParam("validTill")@DateTimeFormat(pattern = "dd/MM/yyyy") LocalDate validTill,
+                       @RequestParam(value = "validTill", required = false)
+                       @DateTimeFormat(pattern = "dd/MM/yyyy") LocalDate validTill,
                        @RequestParam("file") MultipartFile file)
             throws GenericException, ValidationException {
         documentService.upload(file, DocumentDTO.builder()
@@ -32,7 +33,8 @@ public class DocumentController {
     }
 
     @GetMapping
-    public byte[] download(@RequestHeader("stepId") Short stepId) throws ValidationException, ResourceNotFoundException, GenericException {
+    public byte[] download(@RequestHeader("stepId") Short stepId) throws ValidationException,
+            ResourceNotFoundException, GenericException {
         return documentService.download(stepId, RequestContextStore.getUser().getUsername());
     }
 

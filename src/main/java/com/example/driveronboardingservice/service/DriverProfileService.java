@@ -2,9 +2,11 @@ package com.example.driveronboardingservice.service;
 
 import com.example.driveronboardingservice.constant.MessageConstants;
 import com.example.driveronboardingservice.entity.DriverProfile;
+import com.example.driveronboardingservice.exception.ForbiddenException;
 import com.example.driveronboardingservice.exception.ResourceNotFoundException;
 import com.example.driveronboardingservice.exception.ValidationException;
 import com.example.driveronboardingservice.model.DriverDTO;
+import com.example.driveronboardingservice.model.OnboardingStepDTO;
 import com.example.driveronboardingservice.model.auth.CustomUser;
 import com.example.driveronboardingservice.model.request.GenericDriverProfileRequest;
 import com.example.driveronboardingservice.repository.DriverProfileRepository;
@@ -28,6 +30,8 @@ public class DriverProfileService {
     DriverProfileRepository driverProfileRepo;
     @Autowired
     CustomUserDetailsService userDetailsService;
+    @Autowired
+    OnboardingStepService onboardingStepService;
 
     public void createProfile(GenericDriverProfileRequest createRequest) throws ValidationException {
         logger.info("Received request to create driver profile: {}", createRequest);
@@ -59,7 +63,26 @@ public class DriverProfileService {
         logger.info("Deleted driver profile for user {} successfully", driverId);
     }
 
-    public void updateProfile() {
+    public void updateProfile(GenericDriverProfileRequest updateProfileRequest,
+                              String driverId) throws ResourceNotFoundException {
+    }
+
+    public void updateAvailability(boolean available, String driverId) throws ForbiddenException {
+        if(available) {
+            Optional<OnboardingStepDTO> nextRequiredStep = onboardingStepService.getNextIncompleteStep(
+                    driverId
+            );
+            if(nextRequiredStep.isEmpty()) {
+                driverProfileRepo.updateAvailability(true, driverId);
+            } else {
+                throw new ForbiddenException(
+                        MessageConstants.ONBOARDING_STEPS_PENDING.getCode(),
+                        MessageConstants.ONBOARDING_STEPS_PENDING.getDesc()
+                );
+            }
+        } else {
+            driverProfileRepo.updateAvailability(false, driverId);
+        }
     }
 
     public DriverDTO getDriverDetails(String driverId) throws ResourceNotFoundException {
