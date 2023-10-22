@@ -33,3 +33,6 @@
 
 ### Sequence diagram
 <img src = "./src/main/resources/templates/sequence_diagram.jpg" alt="sequence diagram"/>
+
+### Flow chart diagram
+<img src = "./src/main/resources/templates/flowchart.jpg" alt="Flow Chart"/>
