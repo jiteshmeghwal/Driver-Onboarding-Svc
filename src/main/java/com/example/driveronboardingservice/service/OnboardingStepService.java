@@ -11,19 +11,15 @@ import com.example.driveronboardingservice.model.OnboardingStepDTO;
 import com.example.driveronboardingservice.model.event.StepCompleteEvent;
 import com.example.driveronboardingservice.repository.OnboardingStepInstanceRepository;
 import com.example.driveronboardingservice.repository.OnboardingStepRepository;
-import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.time.Clock;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Collectors;
+import java.util.*;
 
 @Service
 public class OnboardingStepService {
@@ -36,7 +32,9 @@ public class OnboardingStepService {
     @Autowired
     private OnboardingStepInstanceRepository onboardingStepInstanceRepository;
 
-    @PostConstruct
+    @Value("${onboarding.step.type.sequence}")
+    private  List<Short> onboardingStepTypeSequence = new ArrayList<>();
+
     @Cacheable("onboardingSteps")
     public Map<Short, OnboardingStep> getOnboardingStepsMap() {
         Iterable<OnboardingStep> onboardingSteps = onboardingStepRepository.findAll();
@@ -52,31 +50,36 @@ public class OnboardingStepService {
         List<OnboardingStepInstance> onboardingStepInstances = onboardingStepInstanceRepository.findAllByDriverId(driverId);
         Map<Short, OnboardingStep> onboardingStepMap = getOnboardingStepsMap();
 
-        List<OnboardingStepDTO> onboardingSteps = onboardingStepMap.values().stream()
-                .map(onboardingStep -> {
-                    OnboardingStepDTO onboardingStepDTO = OnboardingStepDTO.builder()
-                            .stepId(onboardingStep.getStepId())
-                            .stepTypeCd(onboardingStep.getStepTypeCd())
-                            .stepTypeDesc(OnboardingStepType.getByCode(onboardingStep.getStepTypeCd()).name())
-                            .stepTitle(onboardingStep.getStepTitle())
-                            .stepDesc(onboardingStep.getStepDesc())
-                            .driverId(driverId)
-                            .build();
+        List<OnboardingStepDTO> onboardingSteps = new ArrayList<>();
 
-                    OnboardingStepInstance matchingStepInstance = onboardingStepInstances.stream()
-                            .filter(stepInstance -> stepInstance.getOnboardingStepInstancePK().getStepId()
-                                    .equals(onboardingStep.getStepId()))
-                            .findFirst()
-                            .orElse(null);
+        for(Short stepTypeCd : onboardingStepTypeSequence) {
+            onboardingSteps.addAll(onboardingStepMap.values().stream()
+                    .filter(onboardingStep -> onboardingStep.getStepTypeCd().equals(stepTypeCd))
+                    .map(onboardingStep -> {
+                        OnboardingStepDTO onboardingStepDTO = OnboardingStepDTO.builder()
+                                .stepId(onboardingStep.getStepId())
+                                .stepTypeCd(onboardingStep.getStepTypeCd())
+                                .stepTypeDesc(OnboardingStepType.getByCode(onboardingStep.getStepTypeCd()).name())
+                                .stepTitle(onboardingStep.getStepTitle())
+                                .stepDesc(onboardingStep.getStepDesc())
+                                .driverId(driverId)
+                                .build();
 
-                    if (matchingStepInstance != null) {
-                        onboardingStepDTO.setComplete(matchingStepInstance.isComplete());
-                        onboardingStepDTO.setAdditionalComments(matchingStepInstance.getAdditionalComments());
-                    } else {
-                        onboardingStepDTO.setComplete(false);
-                    }
-                    return onboardingStepDTO;
-                }).collect(Collectors.toList());
+                        OnboardingStepInstance matchingStepInstance = onboardingStepInstances.stream()
+                                .filter(stepInstance -> stepInstance.getOnboardingStepInstancePK().getStepId()
+                                        .equals(onboardingStep.getStepId()))
+                                .findFirst()
+                                .orElse(null);
+
+                        if (matchingStepInstance != null) {
+                            onboardingStepDTO.setComplete(matchingStepInstance.isComplete());
+                            onboardingStepDTO.setAdditionalComments(matchingStepInstance.getAdditionalComments());
+                        } else {
+                            onboardingStepDTO.setComplete(false);
+                        }
+                        return onboardingStepDTO;
+                    }).toList());
+        }
 
         return onboardingSteps;
     }
@@ -117,7 +120,9 @@ public class OnboardingStepService {
         onboardingStepInstance.setAdditionalComments(onboardingStepDTO.getAdditionalComments());
         onboardingStepInstanceRepository.save(onboardingStepInstance);
         if(onboardingStepDTO.isComplete()) {
-            publishEvent(getStepCompleteEvent(onboardingStepDTO));
+            publishEvent(getStepCompleteEvent(getOnboardingStep(
+                    onboardingStepDTO.getStepId(), onboardingStepDTO.getDriverId()
+            )));
         }
     }
 

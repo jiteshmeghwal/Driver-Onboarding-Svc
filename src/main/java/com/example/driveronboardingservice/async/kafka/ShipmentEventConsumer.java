@@ -1,6 +1,7 @@
 package com.example.driveronboardingservice.async.kafka;
 
 import com.example.driveronboardingservice.constant.ShipmentStatus;
+import com.example.driveronboardingservice.model.OnboardingStepDTO;
 import com.example.driveronboardingservice.model.ShipmentDTO;
 import com.example.driveronboardingservice.model.event.ShipmentUpdateEvent;
 import com.example.driveronboardingservice.service.OnboardingStepService;
@@ -35,8 +36,10 @@ public class ShipmentEventConsumer {
                     .orderId(event.getOrderId())
                     .status(event.getStatusCd()).build());
             if (ShipmentStatus.DELIVERED.getCode().equals(event.getStatusCd())) {
-                stepService.updateCompleteStatus(shipmentDTO.getStepId(),
+                //update step to complete status
+                OnboardingStepDTO onboardingStepDTO = stepService.updateCompleteStatus(shipmentDTO.getStepId(),
                         shipmentDTO.getDriverId(), true);
+                stepService.publishEvent(stepService.getStepCompleteEvent(onboardingStepDTO));
             }
             acknowledgment.acknowledge();
         } catch (Exception exception) {

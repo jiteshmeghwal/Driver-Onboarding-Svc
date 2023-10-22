@@ -24,7 +24,7 @@ public class DriverProfileController {
     @PostMapping
     public ResponseEntity<Object> createDriverProfile(
             @RequestBody GenericDriverProfileRequest createProfileRequest) throws ValidationException {
-        driverProfileService.createProfile(createProfileRequest);
+        driverProfileService.createProfile(createProfileRequest, RequestContextStore.getUser().getUsername());
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
@@ -33,10 +33,10 @@ public class DriverProfileController {
         return driverProfileService.getDriverDetails(RequestContextStore.getUser().getUsername());
     }
 
-    @PutMapping
-    public void updateDriverProfile(@RequestBody GenericDriverProfileRequest updateProfileRequest) throws ResourceNotFoundException {
-        driverProfileService.updateProfile(updateProfileRequest, RequestContextStore.getUser().getUsername());
-    }
+//    @PutMapping
+//    public void updateDriverProfile(@RequestBody GenericDriverProfileRequest updateProfileRequest) throws ResourceNotFoundException {
+//        driverProfileService.updateProfile(updateProfileRequest, RequestContextStore.getUser().getUsername());
+//    }
 
     @PutMapping("/mark")
     public void updateAvailability(@RequestParam("online") boolean online) throws ForbiddenException {

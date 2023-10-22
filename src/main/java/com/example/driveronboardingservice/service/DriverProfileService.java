@@ -12,7 +12,6 @@ import com.example.driveronboardingservice.model.request.GenericDriverProfileReq
 import com.example.driveronboardingservice.repository.DriverProfileRepository;
 import com.example.driveronboardingservice.service.auth.CustomUserDetailsService;
 import com.example.driveronboardingservice.util.EntityMapper;
-import com.example.driveronboardingservice.util.RequestContextStore;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,17 +32,17 @@ public class DriverProfileService {
     @Autowired
     OnboardingStepService onboardingStepService;
 
-    public void createProfile(GenericDriverProfileRequest createRequest) throws ValidationException {
+    public void createProfile(GenericDriverProfileRequest createRequest, String driverId)
+            throws ValidationException {
         logger.info("Received request to create driver profile: {}", createRequest);
-        validateProfileNotExist();
+        validateProfileNotExist(driverId);
         validatorService.validateCreateProfileRequest(createRequest);
-        DriverProfile profile = entityMapper.mapCreateDriverRequestToDriverProfile(createRequest);
+        DriverProfile profile = entityMapper.mapCreateDriverRequestToDriverProfile(createRequest, driverId);
         driverProfileRepo.save(profile);
         logger.info("Driver Profile created");
     }
 
-    private void validateProfileNotExist() throws ValidationException {
-        String driverId = RequestContextStore.getUser().getUsername();
+    private void validateProfileNotExist(String driverId) throws ValidationException {
         Optional<DriverProfile> profile = driverProfileRepo.findByDriverId(driverId);
         if(profile.isPresent()) {
             throw new ValidationException(MessageConstants.PROFILE_ALREADY_EXIST.getCode(),
@@ -51,21 +50,21 @@ public class DriverProfileService {
         }
     }
 
-    public void deleteProfile(String driverId) throws ResourceNotFoundException {
-        logger.info("Received request to delete driver profile for user: {}", driverId);
-        Optional<DriverProfile> driverProfile = driverProfileRepo.findByDriverId(driverId);
+//    public void deleteProfile(String driverId) throws ResourceNotFoundException {
+//        logger.info("Received request to delete driver profile for user: {}", driverId);
+//        Optional<DriverProfile> driverProfile = driverProfileRepo.findByDriverId(driverId);
+//
+//        if(driverProfile.isEmpty()) {
+//            throw new ResourceNotFoundException(MessageConstants.PROFILE_DOES_NOT_EXIST.getCode(),
+//                    MessageConstants.PROFILE_DOES_NOT_EXIST.getDesc());
+//        }
+//        driverProfileRepo.delete(driverProfile.get());
+//        logger.info("Deleted driver profile for user {} successfully", driverId);
+//    }
 
-        if(driverProfile.isEmpty()) {
-            throw new ResourceNotFoundException(MessageConstants.PROFILE_DOES_NOT_EXIST.getCode(),
-                    MessageConstants.PROFILE_DOES_NOT_EXIST.getDesc());
-        }
-        driverProfileRepo.delete(driverProfile.get());
-        logger.info("Deleted driver profile for user {} successfully", driverId);
-    }
-
-    public void updateProfile(GenericDriverProfileRequest updateProfileRequest,
-                              String driverId) throws ResourceNotFoundException {
-    }
+//    public void updateProfile(GenericDriverProfileRequest updateProfileRequest,
+//                              String driverId) throws ResourceNotFoundException {
+//    }
 
     public void updateAvailability(boolean available, String driverId) throws ForbiddenException {
         if(available) {
