@@ -11,7 +11,6 @@ import com.example.driveronboardingservice.model.event.StepCompleteEvent;
 import com.example.driveronboardingservice.model.response.CreateOrderResponse;
 import com.example.driveronboardingservice.service.OnboardingStepService;
 import com.example.driveronboardingservice.service.ShipmentService;
-import jakarta.transaction.Transactional;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,7 +36,6 @@ public class StepUpdateEventListener {
 
 
     @Async
-    @Transactional
     @EventListener
     public void onStepCompletion(StepCompleteEvent event) throws ValidationException {
         logger.info("Received stepId {} completion event for user {}",
