@@ -45,10 +45,8 @@ public class DocumentService implements IDocumentOperations {
         blobService.storeDocument(file, documentDTO.getDocName(), documentDTO.getDriverId());
         logger.info("Saved document {}, for user {}", documentDTO.getDocName(),
                 documentDTO.getDriverId());
-        onboardingStepService.updateOnboardingStep(OnboardingStepDTO.builder()
-                        .stepId(documentDTO.getStepId())
-                        .driverId(documentDTO.getDriverId())
-                        .isComplete(true).build());
+        onboardingStepService.updateOnboardingStepStatus(documentDTO.getStepId(), documentDTO.getDriverId(),
+                true, null);
     }
 
     @Override
