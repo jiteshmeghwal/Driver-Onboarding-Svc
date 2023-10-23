@@ -29,7 +29,7 @@ public class CustomExceptionHandler extends ResponseEntityExceptionHandler {
         return new ResponseEntity<>(new ErrorResponse(ex.getCode(), ex.getDesc()), HttpStatus.NOT_FOUND);
     }
 
-    @ExceptionHandler
+    @ExceptionHandler(ForbiddenException.class)
     public ResponseEntity<Object> handleForbiddenException(ForbiddenException ex, WebRequest request) {
         return new ResponseEntity<>(new ErrorResponse(ex.getCode(), ex.getDesc()), HttpStatus.FORBIDDEN);
     }
