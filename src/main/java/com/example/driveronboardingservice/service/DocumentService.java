@@ -53,7 +53,6 @@ public class DocumentService implements IDocumentOperations {
 
     @Override
     public void delete(Short stepId, String driverId) throws ResourceNotFoundException, ValidationException {
-        validateOnboardingStep(stepId, driverId);
         Optional<Document> document = documentRepository.findByDriverIdAndStepId(driverId, stepId);
         if(document.isPresent()) {
             String fileName = document.get().getDocName();

@@ -1,11 +1,9 @@
 package com.example.driveronboardingservice.service;
 
 import com.example.driveronboardingservice.constant.MessageConstants;
-import com.example.driveronboardingservice.constant.OnboardingStepType;
 import com.example.driveronboardingservice.constant.ShipmentStatus;
 import com.example.driveronboardingservice.entity.Shipment;
 import com.example.driveronboardingservice.exception.ValidationException;
-import com.example.driveronboardingservice.model.OnboardingStepDTO;
 import com.example.driveronboardingservice.model.ShipmentDTO;
 import com.example.driveronboardingservice.operations.IShipmentOperations;
 import com.example.driveronboardingservice.repository.ShipmentRepository;
@@ -32,8 +30,8 @@ public class ShipmentService implements IShipmentOperations {
     private OnboardingStepService onboardingStepService;
 
 
+    @Override
     public void createShipment(ShipmentDTO shipmentDTO) throws ValidationException {
-        validateOnboardingStep(shipmentDTO.getStepId(), shipmentDTO.getDriverId());
         Shipment shipment = new Shipment();
         shipment.setOrderId(shipmentDTO.getOrderId());
         shipment.setStatus(shipmentDTO.getStatus());
@@ -47,17 +45,7 @@ public class ShipmentService implements IShipmentOperations {
                 shipment.getId());
     }
 
-    private void validateOnboardingStep(Short stepId, String driverId) throws ValidationException {
-        Optional<OnboardingStepDTO> onboardingStepDTO = onboardingStepService.getNextIncompleteOnboardingStep(driverId);
-
-        if (onboardingStepDTO.isEmpty() ||
-                ( !OnboardingStepType.SHIPMENT.getCode().equals(onboardingStepDTO.get().getStepTypeCd()) ||
-                        !onboardingStepDTO.get().getStepId().equals(stepId))) {
-            throw new ValidationException(MessageConstants.INVALID_STEP.getCode(),
-                    MessageConstants.INVALID_STEP.getDesc());
-        }
-    }
-
+    @Override
     public ShipmentDTO updateShipment(ShipmentDTO shipmentDTO) throws ValidationException {
         Optional<Shipment> shipmentOptional = shipmentRepository.findByOrderId(shipmentDTO.getOrderId());
         if(shipmentOptional.isEmpty()) {
@@ -75,6 +63,7 @@ public class ShipmentService implements IShipmentOperations {
         return getShipmentDTO(shipment);
     }
 
+    @Override
     public ShipmentDTO getShipment(Short stepId, String driverId) throws ValidationException {
         Optional<Shipment> shipment = shipmentRepository.findByStepIdAndDriverId(stepId, driverId);
         if(shipment.isEmpty()) {

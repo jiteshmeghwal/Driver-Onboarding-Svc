@@ -12,7 +12,8 @@ public enum MessageConstants {
     SHIPMENT_NOT_FOUND("ERR-9", "Shipment not found"),
     FILE_NAME_IS_NULL("ERR-10", "Uploaded file name shouldn't be null"),
     INVALID_REQUEST("ERR-11", "Invalid request"),
-    ONBOARDING_STEPS_PENDING("ERR-12", "Onboarding steps are pending");
+    ONBOARDING_STEPS_PENDING("ERR-12", "Onboarding steps are pending"),
+    STEP_ALREADY_REQUESTED_STATUS("ERR-13", "Onboarding step already in requested status");
     private final String code;
     private final String desc;
 

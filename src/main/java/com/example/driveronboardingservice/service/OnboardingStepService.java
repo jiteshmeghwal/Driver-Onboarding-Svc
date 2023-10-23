@@ -19,9 +19,7 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.time.Clock;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 public class OnboardingStepService implements IOnboardingStepOperations {
@@ -36,32 +34,32 @@ public class OnboardingStepService implements IOnboardingStepOperations {
 
 
     @Cacheable("onboardingSteps")
-    private List<OnboardingStep> getOnboardingStepsList() {
+    private Map<Short, OnboardingStep> getOnboardingStepsMap() {
         Iterable<OnboardingStep> onboardingSteps = onboardingStepRepository.findAll();
 
-        List<OnboardingStep> onboardingStepList = new ArrayList<>();
+        Map<Short, OnboardingStep> onboardingStepsMap = new HashMap();
         for(OnboardingStep step : onboardingSteps) {
-            onboardingStepList.add(step);
+            onboardingStepsMap.put(step.getStepId(), step);
         }
-        return onboardingStepList;
+        return onboardingStepsMap;
     }
 
     @Override
     public List<OnboardingStepDTO> getOnboardingSteps(String driverId) {
         List<OnboardingStepInstance> onboardingStepInstances = onboardingStepInstanceRepository.findAllByDriverId(driverId);
-        List<OnboardingStep> onboardingStepList = getOnboardingStepsList();
+        Map<Short, OnboardingStep> onboardingStepsMap = getOnboardingStepsMap();
 
         List<OnboardingStepDTO> onboardingSteps = new ArrayList<>();
 
         for(Short stepTypeCd : appConfig.getOnboardingStepTypeSequence()) {
-            onboardingSteps.addAll(onboardingStepList.stream()
+            onboardingSteps.addAll(onboardingStepsMap.values().stream()
                     .filter(onboardingStep -> onboardingStep.getStepTypeCd().equals(stepTypeCd))
                     .map(onboardingStep -> {
                         OnboardingStepInstance onboardingStepInstance = onboardingStepInstances.stream()
                                 .filter(stepInstance -> stepInstance.getOnboardingStepInstancePK().getStepId()
                                         .equals(onboardingStep.getStepId()))
                                 .findFirst()
-                                .orElse(getNewOnboardingStepInstance(onboardingStep.getStepId(), driverId));
+                                .orElse(getOnboardingStepInstance(onboardingStep.getStepId(), driverId));
 
                         return getOnboardingStepDTO(onboardingStep, onboardingStepInstance);
                     }).toList());
@@ -70,7 +68,7 @@ public class OnboardingStepService implements IOnboardingStepOperations {
         return onboardingSteps;
     }
 
-    private OnboardingStepInstance getNewOnboardingStepInstance(Short stepId, String driverId) {
+    private OnboardingStepInstance getOnboardingStepInstance(Short stepId, String driverId) {
         OnboardingStepInstancePK onboardingStepInstancePK = new OnboardingStepInstancePK();
         onboardingStepInstancePK.setStepId(stepId);
         onboardingStepInstancePK.setDriverId(driverId);
@@ -80,8 +78,39 @@ public class OnboardingStepService implements IOnboardingStepOperations {
         return onboardingStepInstance;
     }
 
+    public void updateOnboardingStepStatus(Short stepId, String driverId, boolean complete,
+                                           String additionalComments) throws ValidationException {
+        OnboardingStep onboardingStep = getOnboardingStepsMap().get(stepId);
+        OnboardingStepInstancePK onboardingStepInstancePK = new OnboardingStepInstancePK();
+        onboardingStepInstancePK.setStepId(stepId);
+        onboardingStepInstancePK.setDriverId(driverId);
+        OnboardingStepInstance onboardingStepInstance;
+        Optional<OnboardingStepInstance> onboardingStepInstanceOptional =
+                onboardingStepInstanceRepository.findById(onboardingStepInstancePK);
+        if(onboardingStepInstanceOptional.isPresent()) {
+            onboardingStepInstance = onboardingStepInstanceOptional.get();
+        } else {
+            onboardingStepInstance = new OnboardingStepInstance();
+            onboardingStepInstance.setOnboardingStepInstancePK(onboardingStepInstancePK);
+        }
+        if(onboardingStepInstance.isComplete() == complete) {
+            throw new ValidationException(MessageConstants.STEP_ALREADY_REQUESTED_STATUS.getCode(),
+                    MessageConstants.STEP_ALREADY_REQUESTED_STATUS.getDesc());
+        }
+        onboardingStepInstance.setComplete(complete);
+        onboardingStepInstance.setAdditionalComments(additionalComments);
+        onboardingStepInstanceRepository.save(onboardingStepInstance);
+        if(complete) {
+            //publish step complete event
+            StepCompleteEvent stepCompleteEvent =
+                    getStepCompleteEvent(getOnboardingStepDTO(onboardingStep, onboardingStepInstance));
+            eventPublisher.publishEvent(stepCompleteEvent);
+        }
+    }
+
     @Override
-    public void updateOnboardingStep(OnboardingStepDTO onboardingStepDTO) {
+    public void updateOnboardingStep(OnboardingStepDTO onboardingStepDTO) throws ValidationException {
+        OnboardingStep onboardingStep = getOnboardingStepsMap().get(onboardingStepDTO.getStepId());
         OnboardingStepInstancePK onboardingStepInstancePK = new OnboardingStepInstancePK();
         onboardingStepInstancePK.setStepId(onboardingStepDTO.getStepId());
         onboardingStepInstancePK.setDriverId(onboardingStepDTO.getDriverId());
@@ -94,11 +123,16 @@ public class OnboardingStepService implements IOnboardingStepOperations {
             onboardingStepInstance = new OnboardingStepInstance();
             onboardingStepInstance.setOnboardingStepInstancePK(onboardingStepInstancePK);
         }
+        if(onboardingStepInstance.isComplete() == onboardingStepDTO.isComplete()) {
+            throw new ValidationException(MessageConstants.STEP_ALREADY_REQUESTED_STATUS.getCode(),
+                    MessageConstants.STEP_ALREADY_REQUESTED_STATUS.getDesc());
+        }
         onboardingStepInstance.setComplete(onboardingStepDTO.isComplete());
         onboardingStepInstance.setAdditionalComments(onboardingStepDTO.getAdditionalComments());
-        onboardingStepInstanceRepository.save(onboardingStepInstance);
+        onboardingStepInstance = onboardingStepInstanceRepository.save(onboardingStepInstance);
         if(onboardingStepDTO.isComplete()) {
-            StepCompleteEvent stepCompleteEvent = getStepCompleteEvent(onboardingStepDTO);
+            StepCompleteEvent stepCompleteEvent =
+                    getStepCompleteEvent(getOnboardingStepDTO(onboardingStep, onboardingStepInstance));
             eventPublisher.publishEvent(stepCompleteEvent);
         }
     }
@@ -123,6 +157,20 @@ public class OnboardingStepService implements IOnboardingStepOperations {
         return onboardingStepList.stream()
                 .filter(step -> !step.isComplete())
                 .findFirst();
+    }
+
+    public void updateStepStatusByStepType(String driverId, OnboardingStepType stepType,
+                                           boolean complete) throws ValidationException {
+        OnboardingStepDTO onboardingStepDTO = getOnboardingSteps(driverId)
+                .stream()
+                .filter(onboardingStep -> stepType.getCode().equals(onboardingStep.getStepTypeCd())
+                        && onboardingStep.isComplete() != complete)
+                .findFirst()
+                .orElse(null);
+        if(onboardingStepDTO != null) {
+            onboardingStepDTO.setComplete(complete);
+            updateOnboardingStep(onboardingStepDTO);
+        }
     }
 
     private StepCompleteEvent getStepCompleteEvent(OnboardingStepDTO onboardingStep) {

@@ -1,4 +1,4 @@
-package com.example.driveronboardingservice.async.kafka;
+package com.example.driveronboardingservice.async.kafka.consumer;
 
 import com.example.driveronboardingservice.constant.ShipmentStatus;
 import com.example.driveronboardingservice.model.OnboardingStepDTO;
@@ -16,7 +16,7 @@ import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.stereotype.Service;
 
 @Service
-public class ShipmentEventConsumer {
+public class ShipmentEventConsumer implements AbstractKafkaConsumer {
     private static final Logger logger = LogManager.getLogger(ShipmentEventConsumer.class);
 
     @Autowired
@@ -25,6 +25,7 @@ public class ShipmentEventConsumer {
     @Autowired
     private OnboardingStepService stepService;
 
+    @Override
     @KafkaListener(topics = "${shipment.update.event.topic}")
     public void consume(ConsumerRecord<String, String> record, Acknowledgment acknowledgment) {
         logger.debug("Consumed shipment update message: {}", record.value());
@@ -37,11 +38,8 @@ public class ShipmentEventConsumer {
                     .status(event.getStatusCd()).build());
             if (ShipmentStatus.DELIVERED.getCode().equals(event.getStatusCd())) {
                 //update step to complete status
-                OnboardingStepDTO onboardingStepDTO = stepService.getOnboardingStep(
-                        shipmentDTO.getStepId(), shipmentDTO.getDriverId()
-                );
-                onboardingStepDTO.setComplete(true);
-                stepService.updateOnboardingStep(onboardingStepDTO);
+                stepService.updateOnboardingStepStatus(shipmentDTO.getStepId(), shipmentDTO.getDriverId(),
+                        true, null);
             }
             acknowledgment.acknowledge();
         } catch (Exception exception) {

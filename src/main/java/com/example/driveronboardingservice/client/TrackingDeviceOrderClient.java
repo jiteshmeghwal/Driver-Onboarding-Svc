@@ -41,7 +41,7 @@ public class TrackingDeviceOrderClient {
     @Value("${tracking.device.order.url}")
     private String orderURL;
 
-    @Retryable(retryFor = HttpServerErrorException.class, maxAttempts = 3, backoff = @Backoff(delay = 100))
+    @Retryable(retryFor = HttpServerErrorException.class, maxAttempts = 3, backoff = @Backoff(delay = 10000))
     public CreateOrderResponse createOrder(String driverId) throws ResourceNotFoundException {
         DriverDTO driver = driverProfileService.getDriverDetails(driverId);
         CustomUser userDetails = (CustomUser) customUserDetailsService.loadUserByUsername(
@@ -82,7 +82,7 @@ public class TrackingDeviceOrderClient {
         return createOrderResponse.getBody();
     }
 
-    public HttpHeaders getHttpHeaders() {
+    private HttpHeaders getHttpHeaders() {
         HttpHeaders headers = new HttpHeaders();
         headers.set("Content-Type", "application/json");
         return headers;

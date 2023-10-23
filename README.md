@@ -22,7 +22,8 @@
   - Background Verification (includes document verification)
   - Shipment of tracking device
 - Client prompts user to complete each incomplete step, e.g. for document upload step, user has to upload a document as requested.
-- Once all document upload steps are complete, a background verification step is displayed, which is completed from backend by system admin.
+- Once all document upload steps are complete, a background verification step is displayed, which is completed from backend by 
+system admin manually/ or AI systems.
 - Once system admin mark a user profile as verified, an order creation request is triggered to a third party service for delivery of a vehicle tracking device to the user.
 - All the shipment status updates are sent by the 3rd party service to our service using kafka.
 - once shipment is delivered to the driver, we mark the last (shipment) step as complete.
@@ -35,4 +36,4 @@
 <img src = "./src/main/resources/templates/sequence_diagram.jpg" alt="sequence diagram"/>
 
 ### Flow chart diagram
-<img src = "./src/main/resources/templates/flowchart.jpg" alt="Flow Chart"/>
+<img src = "./src/main/resources/templates/flowchart2.jpg" alt="Flow Chart"/>

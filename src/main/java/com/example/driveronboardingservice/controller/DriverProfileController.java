@@ -33,11 +33,6 @@ public class DriverProfileController {
         return driverProfileService.getDriverDetails(RequestContextStore.getUser().getUsername());
     }
 
-//    @PutMapping
-//    public void updateDriverProfile(@RequestBody GenericDriverProfileRequest updateProfileRequest) throws ResourceNotFoundException {
-//        driverProfileService.updateProfile(updateProfileRequest, RequestContextStore.getUser().getUsername());
-//    }
-
     @PutMapping("/mark")
     public void updateAvailability(@RequestParam("online") boolean online) throws ForbiddenException {
         driverProfileService.updateAvailability(online, RequestContextStore.getUser().getUsername());
