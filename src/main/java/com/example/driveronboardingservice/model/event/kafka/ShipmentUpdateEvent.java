@@ -1,4 +1,4 @@
-package com.example.driveronboardingservice.model.event;
+package com.example.driveronboardingservice.model.event.kafka;
 
 import lombok.Data;
 

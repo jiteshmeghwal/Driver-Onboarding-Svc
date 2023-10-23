@@ -34,12 +34,11 @@ public class DriverProfileService {
 
     public void createProfile(GenericDriverProfileRequest createRequest, String driverId)
             throws ValidationException {
-        logger.info("Received request to create driver profile: {}", createRequest);
         validateProfileNotExist(driverId);
         validatorService.validateCreateProfileRequest(createRequest);
         DriverProfile profile = entityMapper.mapCreateDriverRequestToDriverProfile(createRequest, driverId);
         driverProfileRepo.save(profile);
-        logger.info("Driver Profile created");
+        logger.info("Driver Profile created for driver {}", driverId);
     }
 
     private void validateProfileNotExist(String driverId) throws ValidationException {
@@ -49,22 +48,6 @@ public class DriverProfileService {
                     MessageConstants.PROFILE_ALREADY_EXIST.getDesc());
         }
     }
-
-//    public void deleteProfile(String driverId) throws ResourceNotFoundException {
-//        logger.info("Received request to delete driver profile for user: {}", driverId);
-//        Optional<DriverProfile> driverProfile = driverProfileRepo.findByDriverId(driverId);
-//
-//        if(driverProfile.isEmpty()) {
-//            throw new ResourceNotFoundException(MessageConstants.PROFILE_DOES_NOT_EXIST.getCode(),
-//                    MessageConstants.PROFILE_DOES_NOT_EXIST.getDesc());
-//        }
-//        driverProfileRepo.delete(driverProfile.get());
-//        logger.info("Deleted driver profile for user {} successfully", driverId);
-//    }
-
-//    public void updateProfile(GenericDriverProfileRequest updateProfileRequest,
-//                              String driverId) throws ResourceNotFoundException {
-//    }
 
     public void updateAvailability(boolean available, String driverId) throws ForbiddenException {
         if(available) {

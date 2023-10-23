@@ -3,7 +3,7 @@ package com.example.driveronboardingservice.async.kafka;
 import com.example.driveronboardingservice.constant.ShipmentStatus;
 import com.example.driveronboardingservice.model.OnboardingStepDTO;
 import com.example.driveronboardingservice.model.ShipmentDTO;
-import com.example.driveronboardingservice.model.event.ShipmentUpdateEvent;
+import com.example.driveronboardingservice.model.event.kafka.ShipmentUpdateEvent;
 import com.example.driveronboardingservice.service.OnboardingStepService;
 import com.example.driveronboardingservice.service.ShipmentService;
 import com.google.gson.Gson;
@@ -37,9 +37,11 @@ public class ShipmentEventConsumer {
                     .status(event.getStatusCd()).build());
             if (ShipmentStatus.DELIVERED.getCode().equals(event.getStatusCd())) {
                 //update step to complete status
-                OnboardingStepDTO onboardingStepDTO = stepService.updateCompleteStatus(shipmentDTO.getStepId(),
-                        shipmentDTO.getDriverId(), true);
-                stepService.publishEvent(stepService.getStepCompleteEvent(onboardingStepDTO));
+                OnboardingStepDTO onboardingStepDTO = stepService.getOnboardingStep(
+                        shipmentDTO.getStepId(), shipmentDTO.getDriverId()
+                );
+                onboardingStepDTO.setComplete(true);
+                stepService.updateStep(onboardingStepDTO);
             }
             acknowledgment.acknowledge();
         } catch (Exception exception) {

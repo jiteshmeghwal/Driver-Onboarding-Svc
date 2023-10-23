@@ -1,6 +1,5 @@
 package com.example.driveronboardingservice.service;
 
-import com.example.driveronboardingservice.constant.EventType;
 import com.example.driveronboardingservice.constant.MessageConstants;
 import com.example.driveronboardingservice.constant.OnboardingStepType;
 import com.example.driveronboardingservice.entity.Document;
@@ -9,16 +8,15 @@ import com.example.driveronboardingservice.exception.ResourceNotFoundException;
 import com.example.driveronboardingservice.exception.ValidationException;
 import com.example.driveronboardingservice.model.DocumentDTO;
 import com.example.driveronboardingservice.model.OnboardingStepDTO;
-import com.example.driveronboardingservice.model.event.StepCompleteEvent;
 import com.example.driveronboardingservice.repository.DocumentRepository;
 import jakarta.transaction.Transactional;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.sql.Timestamp;
-import java.time.Clock;
 import java.time.Instant;
 import java.util.Objects;
 import java.util.Optional;
@@ -27,8 +25,7 @@ import java.util.UUID;
 @Service
 @Transactional
 public class DocumentService {
-    @Autowired
-    private ApplicationEventPublisher eventPublisher;
+    private static final Logger logger = LogManager.getLogger(DocumentService.class);
     @Autowired
     private BlobService blobService;
     @Autowired
@@ -40,17 +37,17 @@ public class DocumentService {
             ValidationException {
         validateOnboardingStep(documentDTO.getStepId(), documentDTO.getDriverId());
         validateDocumentNotExist(documentDTO.getDriverId(), documentDTO.getStepId());
-
-        OnboardingStepDTO onboardingStepDTO = onboardingStepService.updateCompleteStatus(
-                documentDTO.getStepId(), documentDTO.getDriverId()
-                , true);
-
+        blobService.storeDocument(file, documentDTO.getDocName(), documentDTO.getDriverId());
         documentDTO.setDocName(getUniqueFileName(file.getOriginalFilename()));
         documentRepository.save(createDocument(documentDTO));
-        
-        blobService.storeDocument(file, documentDTO.getDocName(), documentDTO.getDriverId());
-
-        onboardingStepService.publishEvent(getStepCompleteEvent(onboardingStepDTO, documentDTO.getDriverId()));
+        logger.info("Saved document {}, for user {}", documentDTO.getDocName(),
+                documentDTO.getDriverId());
+        OnboardingStepDTO onboardingStepDTO = onboardingStepService.getOnboardingStep(
+                documentDTO.getStepId(), documentDTO.getDriverId()
+        );
+        onboardingStepDTO.setComplete(true);
+        onboardingStepDTO.setAdditionalComments(null);
+        onboardingStepService.updateStep(onboardingStepDTO);
     }
 
     public void delete(Short stepId, String driverId) throws ResourceNotFoundException, ValidationException {
@@ -60,6 +57,7 @@ public class DocumentService {
             String fileName = document.get().getDocName();
             documentRepository.delete(document.get());
             blobService.deleteDocument(fileName, driverId);
+            logger.info("Deleted document for driver {} and step {}", driverId, stepId);
         } else {
             throw new ValidationException(MessageConstants.DOCUMENT_NOT_FOUND.getCode(),
                     MessageConstants.DOCUMENT_NOT_FOUND.getDesc());
@@ -117,14 +115,6 @@ public class DocumentService {
             throw new ValidationException(MessageConstants.STEP_IS_ALREADY_COMPLETE.getCode(),
                     MessageConstants.STEP_IS_ALREADY_COMPLETE.getDesc());
         }
-    }
-
-    private StepCompleteEvent getStepCompleteEvent(OnboardingStepDTO onboardingStep, String driverId) {
-        StepCompleteEvent stepCompleteEvent = new StepCompleteEvent(this, Clock.systemUTC());
-        stepCompleteEvent.setEventType(EventType.STEP_COMPLETE);
-        stepCompleteEvent.setUserId(driverId);
-        stepCompleteEvent.setOnboardingStep(onboardingStep);
-        return  stepCompleteEvent;
     }
 
 }
