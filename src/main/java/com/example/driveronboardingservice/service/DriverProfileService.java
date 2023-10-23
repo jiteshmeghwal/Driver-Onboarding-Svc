@@ -9,6 +9,7 @@ import com.example.driveronboardingservice.model.DriverDTO;
 import com.example.driveronboardingservice.model.OnboardingStepDTO;
 import com.example.driveronboardingservice.model.auth.CustomUser;
 import com.example.driveronboardingservice.model.request.GenericDriverProfileRequest;
+import com.example.driveronboardingservice.operations.IDriverProfileOperations;
 import com.example.driveronboardingservice.repository.DriverProfileRepository;
 import com.example.driveronboardingservice.service.auth.CustomUserDetailsService;
 import com.example.driveronboardingservice.util.EntityMapper;
@@ -20,7 +21,7 @@ import org.springframework.stereotype.Service;
 import java.util.Optional;
 
 @Service
-public class DriverProfileService {
+public class DriverProfileService implements IDriverProfileOperations {
     private static final Logger logger = LogManager.getLogger(DriverProfileService.class);
     private static final EntityMapper entityMapper = new EntityMapper();
     private static final ValidatorService validatorService = new ValidatorService();
@@ -32,6 +33,7 @@ public class DriverProfileService {
     @Autowired
     OnboardingStepService onboardingStepService;
 
+    @Override
     public void createProfile(GenericDriverProfileRequest createRequest, String driverId)
             throws ValidationException {
         validateProfileNotExist(driverId);
@@ -49,9 +51,10 @@ public class DriverProfileService {
         }
     }
 
+    @Override
     public void updateAvailability(boolean available, String driverId) throws ForbiddenException {
         if(available) {
-            Optional<OnboardingStepDTO> nextRequiredStep = onboardingStepService.getNextIncompleteStep(
+            Optional<OnboardingStepDTO> nextRequiredStep = onboardingStepService.getNextIncompleteOnboardingStep(
                     driverId
             );
             if(nextRequiredStep.isEmpty()) {
@@ -67,6 +70,7 @@ public class DriverProfileService {
         }
     }
 
+    @Override
     public DriverDTO getDriverDetails(String driverId) throws ResourceNotFoundException {
 
         Optional<DriverProfile> driverProfile = driverProfileRepo.findByDriverId(driverId);

@@ -16,13 +16,13 @@ public class ShipmentController {
 
     @GetMapping
     public ShipmentDTO getShipment(@RequestHeader("stepId") Short stepId) throws ValidationException {
-        return shipmentService.getShipmentDTO(stepId, RequestContextStore.getUser().getUsername());
+        return shipmentService.getShipment(stepId, RequestContextStore.getUser().getUsername());
     }
 
     @GetMapping("/{userId}")
     @Secured("ADMIN")
     public ShipmentDTO getShipment(@RequestHeader("stepId") Short stepId, @PathVariable("userId")String userId)
             throws ValidationException {
-        return shipmentService.getShipmentDTO(stepId, userId);
+        return shipmentService.getShipment(stepId, userId);
     }
 }

@@ -22,12 +22,12 @@ public class OnboardingStepController {
     @GetMapping("/{driverId}")
     @Secured("ADMIN")
     public List<OnboardingStepDTO> getOnboardingStepsByDriver(@PathVariable("driverId") String driverId) {
-        return onboardingStepService.getOnboardingStepsByDriver(driverId);
+        return onboardingStepService.getOnboardingSteps(driverId);
     }
 
     @GetMapping("/next-incomplete")
     public ResponseEntity<?> getNextIncompleteStep() {
-        Optional<OnboardingStepDTO> onboardingStep = onboardingStepService.getNextIncompleteStep(
+        Optional<OnboardingStepDTO> onboardingStep = onboardingStepService.getNextIncompleteOnboardingStep(
                 RequestContextStore.getUser().getUsername());
         if(onboardingStep.isEmpty()) {
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
@@ -39,6 +39,6 @@ public class OnboardingStepController {
     @Secured("ADMIN")
     public void updateStep(@RequestBody OnboardingStepDTO onboardingStepDTO)
             throws ValidationException {
-        onboardingStepService.updateStep(onboardingStepDTO);
+        onboardingStepService.updateOnboardingStep(onboardingStepDTO);
     }
 }

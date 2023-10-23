@@ -1,22 +1,18 @@
 package com.example.driveronboardingservice.service;
 
-import com.example.driveronboardingservice.client.TrackingDeviceOrderClient;
 import com.example.driveronboardingservice.constant.MessageConstants;
 import com.example.driveronboardingservice.constant.OnboardingStepType;
 import com.example.driveronboardingservice.constant.ShipmentStatus;
 import com.example.driveronboardingservice.entity.Shipment;
-import com.example.driveronboardingservice.exception.ResourceNotFoundException;
 import com.example.driveronboardingservice.exception.ValidationException;
 import com.example.driveronboardingservice.model.OnboardingStepDTO;
 import com.example.driveronboardingservice.model.ShipmentDTO;
-import com.example.driveronboardingservice.model.response.CreateOrderResponse;
+import com.example.driveronboardingservice.operations.IShipmentOperations;
 import com.example.driveronboardingservice.repository.ShipmentRepository;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.HttpServerErrorException;
 
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -27,53 +23,32 @@ import java.util.Optional;
  * @author Jitesh Meghwal
  */
 @Service
-public class ShipmentService {
+public class ShipmentService implements IShipmentOperations {
     private static final Logger logger = LogManager.getLogger(ShipmentService.class);
 
     @Autowired
     private ShipmentRepository shipmentRepository;
     @Autowired
     private OnboardingStepService onboardingStepService;
-    @Autowired
-    private TrackingDeviceOrderClient trackingDeviceOrderClient;
 
-    public void createShipment(Short stepId, String driverId) throws ResourceNotFoundException,
-            ValidationException {
-        validateOnboardingStep(stepId, driverId);
 
-        Shipment shipment;
-
-        try {
-            CreateOrderResponse response = trackingDeviceOrderClient.createOrder(driverId);
-            shipment = createShipment(
-                    ShipmentDTO.builder()
-                            .orderId(response.getOrderId())
-                            .driverId(driverId)
-                            .stepId(stepId).build()
-            );
-        } catch (HttpServerErrorException | HttpClientErrorException exception) {
-            shipment = createShipment(ShipmentDTO.builder()
-                    .status(ShipmentStatus.FAILED.getCode())
-                    .driverId(driverId)
-                    .stepId(stepId)
-                    .build());
-        }
-
-        shipmentRepository.save(shipment);
-    }
-
-    public Shipment createShipment(ShipmentDTO shipmentDTO) {
+    public void createShipment(ShipmentDTO shipmentDTO) throws ValidationException {
+        validateOnboardingStep(shipmentDTO.getStepId(), shipmentDTO.getDriverId());
         Shipment shipment = new Shipment();
         shipment.setOrderId(shipmentDTO.getOrderId());
         shipment.setStatus(shipmentDTO.getStatus());
-        shipment.setOrderDate(Timestamp.from(Instant.now()));
+        if(shipmentDTO.getOrderDate() != null) {
+            shipment.setOrderDate(Timestamp.valueOf(shipmentDTO.getOrderDate()));
+        }
         shipment.setDriverId(shipmentDTO.getDriverId());
         shipment.setStepId(shipmentDTO.getStepId());
-        return shipment;
+        shipment = shipmentRepository.save(shipment);
+        logger.info("Created shipment for user {} with shipmentID {}", shipmentDTO.getDriverId(),
+                shipment.getId());
     }
 
     private void validateOnboardingStep(Short stepId, String driverId) throws ValidationException {
-        Optional<OnboardingStepDTO> onboardingStepDTO = onboardingStepService.getNextIncompleteStep(driverId);
+        Optional<OnboardingStepDTO> onboardingStepDTO = onboardingStepService.getNextIncompleteOnboardingStep(driverId);
 
         if (onboardingStepDTO.isEmpty() ||
                 ( !OnboardingStepType.SHIPMENT.getCode().equals(onboardingStepDTO.get().getStepTypeCd()) ||
@@ -83,7 +58,7 @@ public class ShipmentService {
         }
     }
 
-    public ShipmentDTO updateShipmentByOrderId(ShipmentDTO shipmentDTO) throws ValidationException {
+    public ShipmentDTO updateShipment(ShipmentDTO shipmentDTO) throws ValidationException {
         Optional<Shipment> shipmentOptional = shipmentRepository.findByOrderId(shipmentDTO.getOrderId());
         if(shipmentOptional.isEmpty()) {
             logger.error("Shipment not found for order ID {}", shipmentDTO.getOrderId());
@@ -100,7 +75,7 @@ public class ShipmentService {
         return getShipmentDTO(shipment);
     }
 
-    public ShipmentDTO getShipmentDTO(Short stepId, String driverId) throws ValidationException {
+    public ShipmentDTO getShipment(Short stepId, String driverId) throws ValidationException {
         Optional<Shipment> shipment = shipmentRepository.findByStepIdAndDriverId(stepId, driverId);
         if(shipment.isEmpty()) {
             throw new ValidationException(MessageConstants.SHIPMENT_NOT_FOUND.getCode(),
@@ -109,10 +84,11 @@ public class ShipmentService {
         return getShipmentDTO(shipment.get());
     }
 
-    public ShipmentDTO getShipmentDTO(Shipment shipment) {
+    private ShipmentDTO getShipmentDTO(Shipment shipment) {
         return ShipmentDTO.builder()
                 .shipmentId(shipment.getId())
                 .orderId(shipment.getOrderId())
+                .orderDate(shipment.getOrderDate().toLocalDateTime())
                 .carrier(shipment.getCarrier())
                 .status(shipment.getStatus())
                 .statusDesc(ShipmentStatus.getByCode(shipment.getStatus()).name())

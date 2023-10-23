@@ -11,6 +11,7 @@ import com.example.driveronboardingservice.entity.OnboardingStepInstancePK;
 import com.example.driveronboardingservice.exception.ValidationException;
 import com.example.driveronboardingservice.model.OnboardingStepDTO;
 import com.example.driveronboardingservice.model.event.StepCompleteEvent;
+import com.example.driveronboardingservice.operations.IOnboardingStepOperations;
 import com.example.driveronboardingservice.repository.OnboardingStepInstanceRepository;
 import com.example.driveronboardingservice.repository.OnboardingStepRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,7 +24,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
-public class OnboardingStepService {
+public class OnboardingStepService implements IOnboardingStepOperations {
     @Autowired
     private AppConfig appConfig;
     @Autowired
@@ -35,7 +36,7 @@ public class OnboardingStepService {
 
 
     @Cacheable("onboardingSteps")
-    public List<OnboardingStep> getOnboardingStepsList() {
+    private List<OnboardingStep> getOnboardingStepsList() {
         Iterable<OnboardingStep> onboardingSteps = onboardingStepRepository.findAll();
 
         List<OnboardingStep> onboardingStepList = new ArrayList<>();
@@ -45,7 +46,8 @@ public class OnboardingStepService {
         return onboardingStepList;
     }
 
-    public List<OnboardingStepDTO> getOnboardingStepsByDriver(String driverId) {
+    @Override
+    public List<OnboardingStepDTO> getOnboardingSteps(String driverId) {
         List<OnboardingStepInstance> onboardingStepInstances = onboardingStepInstanceRepository.findAllByDriverId(driverId);
         List<OnboardingStep> onboardingStepList = getOnboardingStepsList();
 
@@ -78,7 +80,8 @@ public class OnboardingStepService {
         return onboardingStepInstance;
     }
 
-    public void updateStep(OnboardingStepDTO onboardingStepDTO) {
+    @Override
+    public void updateOnboardingStep(OnboardingStepDTO onboardingStepDTO) {
         OnboardingStepInstancePK onboardingStepInstancePK = new OnboardingStepInstancePK();
         onboardingStepInstancePK.setStepId(onboardingStepDTO.getStepId());
         onboardingStepInstancePK.setDriverId(onboardingStepDTO.getDriverId());
@@ -100,8 +103,9 @@ public class OnboardingStepService {
         }
     }
     
+    @Override
     public OnboardingStepDTO getOnboardingStep(Short stepId, String driverId) throws ValidationException {
-        List<OnboardingStepDTO> onboardingStepList = getOnboardingStepsByDriver(driverId);
+        List<OnboardingStepDTO> onboardingStepList = getOnboardingSteps(driverId);
         Optional<OnboardingStepDTO> matchingStep = onboardingStepList.stream()
                 .filter(step -> step.getStepId().equals(stepId))
                 .findFirst();
@@ -113,14 +117,15 @@ public class OnboardingStepService {
         return matchingStep.get();
     }
 
-    public Optional<OnboardingStepDTO> getNextIncompleteStep(String driverId) {
-        List<OnboardingStepDTO> onboardingStepList = getOnboardingStepsByDriver(driverId);
+    @Override
+    public Optional<OnboardingStepDTO> getNextIncompleteOnboardingStep(String driverId) {
+        List<OnboardingStepDTO> onboardingStepList = getOnboardingSteps(driverId);
         return onboardingStepList.stream()
                 .filter(step -> !step.isComplete())
                 .findFirst();
     }
 
-    public StepCompleteEvent getStepCompleteEvent(OnboardingStepDTO onboardingStep) {
+    private StepCompleteEvent getStepCompleteEvent(OnboardingStepDTO onboardingStep) {
         StepCompleteEvent stepCompleteEvent = new StepCompleteEvent(this, Clock.systemUTC());
         stepCompleteEvent.setEventType(EventType.STEP_COMPLETE);
         stepCompleteEvent.setUserId(onboardingStep.getDriverId());

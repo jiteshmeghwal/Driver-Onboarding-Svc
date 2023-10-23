@@ -8,6 +8,7 @@ import com.example.driveronboardingservice.exception.ResourceNotFoundException;
 import com.example.driveronboardingservice.exception.ValidationException;
 import com.example.driveronboardingservice.model.DocumentDTO;
 import com.example.driveronboardingservice.model.OnboardingStepDTO;
+import com.example.driveronboardingservice.operations.IDocumentOperations;
 import com.example.driveronboardingservice.repository.DocumentRepository;
 import jakarta.transaction.Transactional;
 import org.apache.logging.log4j.LogManager;
@@ -24,7 +25,7 @@ import java.util.UUID;
 
 @Service
 @Transactional
-public class DocumentService {
+public class DocumentService implements IDocumentOperations {
     private static final Logger logger = LogManager.getLogger(DocumentService.class);
     @Autowired
     private BlobService blobService;
@@ -33,23 +34,24 @@ public class DocumentService {
     @Autowired
     private DocumentRepository documentRepository;
 
+    @Override
     public void upload(MultipartFile file, DocumentDTO documentDTO) throws GenericException,
             ValidationException {
         validateOnboardingStep(documentDTO.getStepId(), documentDTO.getDriverId());
         validateDocumentNotExist(documentDTO.getDriverId(), documentDTO.getStepId());
-        blobService.storeDocument(file, documentDTO.getDocName(), documentDTO.getDriverId());
+
         documentDTO.setDocName(getUniqueFileName(file.getOriginalFilename()));
         documentRepository.save(createDocument(documentDTO));
+        blobService.storeDocument(file, documentDTO.getDocName(), documentDTO.getDriverId());
         logger.info("Saved document {}, for user {}", documentDTO.getDocName(),
                 documentDTO.getDriverId());
-        OnboardingStepDTO onboardingStepDTO = onboardingStepService.getOnboardingStep(
-                documentDTO.getStepId(), documentDTO.getDriverId()
-        );
-        onboardingStepDTO.setComplete(true);
-        onboardingStepDTO.setAdditionalComments(null);
-        onboardingStepService.updateStep(onboardingStepDTO);
+        onboardingStepService.updateOnboardingStep(OnboardingStepDTO.builder()
+                        .stepId(documentDTO.getStepId())
+                        .driverId(documentDTO.getDriverId())
+                        .isComplete(true).build());
     }
 
+    @Override
     public void delete(Short stepId, String driverId) throws ResourceNotFoundException, ValidationException {
         validateOnboardingStep(stepId, driverId);
         Optional<Document> document = documentRepository.findByDriverIdAndStepId(driverId, stepId);
@@ -64,6 +66,7 @@ public class DocumentService {
         }
     }
 
+    @Override
     public byte[] download(Short stepId, String driverId) throws ValidationException, ResourceNotFoundException, GenericException {
         Optional<Document> document = documentRepository.findByDriverIdAndStepId(driverId, stepId);
         if(document.isPresent()) {
@@ -78,7 +81,9 @@ public class DocumentService {
         Document document = new Document();
         document.setDocName(documentDTO.getDocName());
         document.setDocUploadTime(Timestamp.from(Instant.now()));
-        document.setValidTill(Timestamp.valueOf(documentDTO.getValidTill().atStartOfDay()));
+        if(documentDTO.getValidTill() != null) {
+            document.setValidTill(Timestamp.valueOf(documentDTO.getValidTill().atStartOfDay()));
+        }
         document.setDriverId(documentDTO.getDriverId());
         document.setStepId(documentDTO.getStepId());
         return document;

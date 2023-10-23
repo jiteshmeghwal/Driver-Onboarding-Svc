@@ -73,7 +73,7 @@ class DriverProfileServiceTest {
 
     @Test
     void updateAvailabilityToTrue_PendingStepError() {
-        Mockito.when(onboardingStepService.getNextIncompleteStep(driverId))
+        Mockito.when(onboardingStepService.getNextIncompleteOnboardingStep(driverId))
                 .thenReturn(Optional.of(OnboardingStepDTO.builder().build()));
         try {
             driverProfileService.updateAvailability(true, driverId);
@@ -85,7 +85,7 @@ class DriverProfileServiceTest {
 
     @Test
     void updateAvailabilityToTrue() throws ForbiddenException {
-        Mockito.when(onboardingStepService.getNextIncompleteStep(driverId))
+        Mockito.when(onboardingStepService.getNextIncompleteOnboardingStep(driverId))
                 .thenReturn(Optional.empty());
         driverProfileService.updateAvailability(true, driverId);
         Mockito.verify(driverProfileRepo, Mockito.times(1)).updateAvailability(true, driverId);

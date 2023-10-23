@@ -31,7 +31,7 @@ public class ShipmentEventConsumer {
         Gson gson = new Gson();
         ShipmentUpdateEvent event = gson.fromJson(record.value(), ShipmentUpdateEvent.class);
         try {
-            ShipmentDTO shipmentDTO = shipmentService.updateShipmentByOrderId(ShipmentDTO.builder()
+            ShipmentDTO shipmentDTO = shipmentService.updateShipment(ShipmentDTO.builder()
                     .carrier(event.getCarrier())
                     .orderId(event.getOrderId())
                     .status(event.getStatusCd()).build());
@@ -41,7 +41,7 @@ public class ShipmentEventConsumer {
                         shipmentDTO.getStepId(), shipmentDTO.getDriverId()
                 );
                 onboardingStepDTO.setComplete(true);
-                stepService.updateStep(onboardingStepDTO);
+                stepService.updateOnboardingStep(onboardingStepDTO);
             }
             acknowledgment.acknowledge();
         } catch (Exception exception) {

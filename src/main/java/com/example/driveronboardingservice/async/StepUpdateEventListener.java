@@ -1,10 +1,14 @@
 package com.example.driveronboardingservice.async;
 
+import com.example.driveronboardingservice.client.TrackingDeviceOrderClient;
 import com.example.driveronboardingservice.constant.OnboardingStepType;
+import com.example.driveronboardingservice.constant.ShipmentStatus;
 import com.example.driveronboardingservice.exception.ResourceNotFoundException;
 import com.example.driveronboardingservice.exception.ValidationException;
 import com.example.driveronboardingservice.model.OnboardingStepDTO;
+import com.example.driveronboardingservice.model.ShipmentDTO;
 import com.example.driveronboardingservice.model.event.StepCompleteEvent;
+import com.example.driveronboardingservice.model.response.CreateOrderResponse;
 import com.example.driveronboardingservice.service.OnboardingStepService;
 import com.example.driveronboardingservice.service.ShipmentService;
 import jakarta.transaction.Transactional;
@@ -14,7 +18,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 @Component
@@ -23,7 +30,8 @@ public class StepUpdateEventListener {
 
     @Autowired
     private OnboardingStepService onboardingStepService;
-
+    @Autowired
+    private TrackingDeviceOrderClient trackingDeviceOrderClient;
     @Autowired
     private ShipmentService shipmentService;
 
@@ -40,7 +48,7 @@ public class StepUpdateEventListener {
             case DOC_UPLOAD:
                 //mark background verification step as incomplete, if a new doc is uploaded by user
                 Optional<OnboardingStepDTO> backgroundVerificationStep = onboardingStepService
-                        .getOnboardingStepsByDriver(event.getUserId())
+                        .getOnboardingSteps(event.getUserId())
                         .stream()
                         .filter(onboardingStep -> OnboardingStepType.BACKGROUND_VERIFICATION.getCode()
                                 .equals(onboardingStep.getStepTypeCd()))
@@ -49,12 +57,12 @@ public class StepUpdateEventListener {
                         backgroundVerificationStep.get().isComplete()) {
                     OnboardingStepDTO backgroundVerificationOnboardingStep = backgroundVerificationStep.get();
                     backgroundVerificationOnboardingStep.setComplete(false);
-                    onboardingStepService.updateStep(backgroundVerificationOnboardingStep);
+                    onboardingStepService.updateOnboardingStep(backgroundVerificationOnboardingStep);
                 }
         }
 
 
-        Optional<OnboardingStepDTO> nextIncompleteStep = onboardingStepService.getNextIncompleteStep(
+        Optional<OnboardingStepDTO> nextIncompleteStep = onboardingStepService.getNextIncompleteOnboardingStep(
                 event.getUserId()
         );
         if(nextIncompleteStep.isPresent()) {
@@ -63,9 +71,24 @@ public class StepUpdateEventListener {
             switch (nextIncompleteStepType) {
                 case SHIPMENT :
                     try {
-                        shipmentService.createShipment(nextIncompleteStep.get().getStepId(), event.getUserId());
+                        //initiate tracking device order
+                        CreateOrderResponse response = trackingDeviceOrderClient.createOrder(event.getUserId());
+                        shipmentService.createShipment(
+                                ShipmentDTO.builder()
+                                        .orderId(response.getOrderId())
+                                        .orderDate(LocalDateTime.now())
+                                        .driverId(event.getUserId())
+                                        .stepId(nextIncompleteStep.get().getStepId()).build()
+                        );
+                    } catch (HttpServerErrorException | HttpClientErrorException exception) {
+                        shipmentService.createShipment(ShipmentDTO.builder()
+                                .status(ShipmentStatus.FAILED.getCode())
+                                .driverId(event.getUserId())
+                                .stepId(nextIncompleteStep.get().getStepId())
+                                .build());
                     } catch (ResourceNotFoundException e) {
-                        logger.error("Failed validation while creating shipment: {}", e.getDesc());
+                        //It will never reach here
+                        logger.error("User {} not found", event.getUserId());
                     }
             }
         }
