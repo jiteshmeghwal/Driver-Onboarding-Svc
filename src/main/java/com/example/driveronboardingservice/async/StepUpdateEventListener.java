@@ -77,6 +77,7 @@ public class StepUpdateEventListener {
                                 ShipmentDTO.builder()
                                         .orderId(response.getOrderId())
                                         .orderDate(LocalDateTime.now())
+                                        .status(ShipmentStatus.ORDERED.getCode())
                                         .driverId(event.getUserId())
                                         .stepId(nextIncompleteStep.get().getStepId()).build()
                         );
