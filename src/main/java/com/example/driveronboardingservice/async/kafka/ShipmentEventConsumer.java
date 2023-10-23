@@ -31,7 +31,7 @@ public class ShipmentEventConsumer {
         Gson gson = new Gson();
         ShipmentUpdateEvent event = gson.fromJson(record.value(), ShipmentUpdateEvent.class);
         try {
-            ShipmentDTO shipmentDTO = shipmentService.updateShipment(ShipmentDTO.builder()
+            ShipmentDTO shipmentDTO = shipmentService.updateShipmentByOrderId(ShipmentDTO.builder()
                     .carrier(event.getCarrier())
                     .orderId(event.getOrderId())
                     .status(event.getStatusCd()).build());

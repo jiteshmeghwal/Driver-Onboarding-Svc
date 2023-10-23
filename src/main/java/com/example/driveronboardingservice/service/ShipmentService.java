@@ -83,7 +83,7 @@ public class ShipmentService {
         }
     }
 
-    public ShipmentDTO updateShipment(ShipmentDTO shipmentDTO) throws ValidationException {
+    public ShipmentDTO updateShipmentByOrderId(ShipmentDTO shipmentDTO) throws ValidationException {
         Optional<Shipment> shipmentOptional = shipmentRepository.findByOrderId(shipmentDTO.getOrderId());
         if(shipmentOptional.isEmpty()) {
             logger.error("Shipment not found for order ID {}", shipmentDTO.getOrderId());

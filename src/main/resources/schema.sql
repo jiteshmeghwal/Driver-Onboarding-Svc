@@ -72,7 +72,7 @@ WHERE object_id = OBJECT_ID(N'[dbo].[shipment]') AND type in (N'U'))
 BEGIN
 CREATE TABLE dbo.shipment (
     shipment_id BIGINT PRIMARY KEY IDENTITY(1,1),
-    order_id VARCHAR(40) NOT NULL,
+    order_id VARCHAR(40) NOT NULL UNIQUE,
     status_cd TINYINT NOT NULL,
     carrier VARCHAR(10),
     order_date DATETIME2 NOT NULL,
@@ -80,6 +80,7 @@ CREATE TABLE dbo.shipment (
     step_id TINYINT NOT NULL,
     driver_id VARCHAR(6) NOT NULL,
     FOREIGN KEY (driver_id) REFERENCES dbo.driver_profile(driver_id),
-    FOREIGN KEY (step_id) REFERENCES dbo.onboarding_step(step_id)
+    FOREIGN KEY (step_id) REFERENCES dbo.onboarding_step(step_id),
+    CONSTRAINT CK_unique_driver_shipment UNIQUE CLUSTERED (step_id, driver_id)
 )
 END;
