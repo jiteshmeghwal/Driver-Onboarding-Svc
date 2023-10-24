@@ -14,7 +14,7 @@ public class Shipment {
     @Column(name = "shipment_id")
     private Long id;
 
-    @Column(name = "order_id", nullable = false)
+    @Column(name = "order_id")
     private String orderId;
 
     @Column(name = "status_cd", nullable = false)
@@ -23,7 +23,7 @@ public class Shipment {
     @Column(name = "carrier")
     private String carrier;
 
-    @Column(name = "order_date", nullable = false)
+    @Column(name = "order_date")
     private Timestamp orderDate;
 
     @Column(name = "last_update_time")

@@ -10,7 +10,8 @@ public interface IOnboardingStepOperations {
 
     List<OnboardingStepDTO> getOnboardingSteps(String driverId);
 
-    void updateOnboardingStep(OnboardingStepDTO onboardingStepDTO) throws ValidationException;
+    void updateOnboardingStepStatus(Short stepId, String driverId, boolean complete,
+                                    String additionalComments) throws ValidationException;
 
     OnboardingStepDTO getOnboardingStep(Short stepId, String driverId) throws ValidationException;
 

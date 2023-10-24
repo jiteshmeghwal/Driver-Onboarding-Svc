@@ -7,8 +7,9 @@ import com.example.driveronboardingservice.model.ShipmentDTO;
 public interface IShipmentOperations {
     void createShipment(ShipmentDTO shipmentDTO) throws ResourceNotFoundException, ValidationException;
 
-    ShipmentDTO updateShipment(ShipmentDTO shipmentDTO) throws ValidationException;
+    void updateShipment(ShipmentDTO shipmentDTO) throws ValidationException;
 
     ShipmentDTO getShipment(Short stepId, String driverId) throws ValidationException;
+    ShipmentDTO getShipmentByOrderId(String orderId) throws ValidationException;
 }
 

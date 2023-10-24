@@ -84,3 +84,17 @@ CREATE TABLE dbo.shipment (
     CONSTRAINT CK_unique_driver_shipment UNIQUE CLUSTERED (step_id, driver_id)
 )
 END;
+
+IF NOT EXISTS (SELECT * FROM sys.objects
+WHERE object_id = OBJECT_ID(N'[dbo].[failed_events]') AND type in (N'U'))
+BEGIN
+CREATE TABLE failed_events (
+    event_id BIGINT PRIMARY KEY IDENTITY(1,1),
+    event_type TEXT NOT NULL,
+    event_payload TEXT NOT NULL,
+    error_message TEXT NOT NULL,
+    retry_count INT NOT NULL,
+    next_retry_time DATETIME2 NOT NULL,
+    created_at DATETIME2 NOT NULL
+);
+END

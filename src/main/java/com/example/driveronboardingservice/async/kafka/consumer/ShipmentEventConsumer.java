@@ -1,7 +1,6 @@
 package com.example.driveronboardingservice.async.kafka.consumer;
 
 import com.example.driveronboardingservice.constant.ShipmentStatus;
-import com.example.driveronboardingservice.model.OnboardingStepDTO;
 import com.example.driveronboardingservice.model.ShipmentDTO;
 import com.example.driveronboardingservice.model.event.kafka.ShipmentUpdateEvent;
 import com.example.driveronboardingservice.service.OnboardingStepService;
@@ -32,10 +31,10 @@ public class ShipmentEventConsumer implements AbstractKafkaConsumer {
         Gson gson = new Gson();
         ShipmentUpdateEvent event = gson.fromJson(record.value(), ShipmentUpdateEvent.class);
         try {
-            ShipmentDTO shipmentDTO = shipmentService.updateShipment(ShipmentDTO.builder()
-                    .carrier(event.getCarrier())
-                    .orderId(event.getOrderId())
-                    .status(event.getStatusCd()).build());
+            ShipmentDTO shipmentDTO = shipmentService.getShipmentByOrderId(event.getOrderId());
+            if(event.getCarrier() != null) shipmentDTO.setCarrier(event.getCarrier());
+            shipmentDTO.setStatus(event.getStatusCd());
+            shipmentService.updateShipment(shipmentDTO);
             if (ShipmentStatus.DELIVERED.getCode().equals(event.getStatusCd())) {
                 //update step to complete status
                 stepService.updateOnboardingStepStatus(shipmentDTO.getStepId(), shipmentDTO.getDriverId(),

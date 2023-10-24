@@ -29,43 +29,62 @@ public class ShipmentService implements IShipmentOperations {
     @Autowired
     private OnboardingStepService onboardingStepService;
 
-
     @Override
     public void createShipment(ShipmentDTO shipmentDTO) throws ValidationException {
+        validateShipmentAlreadyExist(shipmentDTO.getStepId(), shipmentDTO.getDriverId());
         Shipment shipment = new Shipment();
         shipment.setOrderId(shipmentDTO.getOrderId());
-        shipment.setStatus(shipmentDTO.getStatus());
-        if(shipmentDTO.getOrderDate() != null) {
-            shipment.setOrderDate(Timestamp.valueOf(shipmentDTO.getOrderDate()));
-        }
+        shipment.setOrderDate(Timestamp.valueOf(shipmentDTO.getOrderDate()));
+        shipment.setStatus(ShipmentStatus.ORDERED.getCode());
         shipment.setDriverId(shipmentDTO.getDriverId());
         shipment.setStepId(shipmentDTO.getStepId());
-        shipment = shipmentRepository.save(shipment);
-        logger.info("Created shipment for user {} with shipmentID {}", shipmentDTO.getDriverId(),
+        shipmentRepository.save(shipment);
+        logger.info("Created shipment for user {} with shipmentID {}",shipmentDTO.getDriverId(),
                 shipment.getId());
     }
 
+    private void validateShipmentAlreadyExist(Short stepId, String driverId) throws ValidationException {
+        Optional<Shipment> shipment = shipmentRepository.findByStepIdAndDriverId(stepId, driverId);
+        if(shipment.isPresent()) {
+            throw new ValidationException(MessageConstants.SHIPMENT_ALREADY_EXIST.getCode(),
+                    MessageConstants.SHIPMENT_ALREADY_EXIST.getDesc());
+        }
+    }
+
     @Override
-    public ShipmentDTO updateShipment(ShipmentDTO shipmentDTO) throws ValidationException {
-        Optional<Shipment> shipmentOptional = shipmentRepository.findByOrderId(shipmentDTO.getOrderId());
+    public void updateShipment(ShipmentDTO shipmentDTO) throws ValidationException {
+        Optional<Shipment> shipmentOptional = shipmentRepository.findByStepIdAndDriverId(shipmentDTO.getStepId(),
+                shipmentDTO.getDriverId());
         if(shipmentOptional.isEmpty()) {
-            logger.error("Shipment not found for order ID {}", shipmentDTO.getOrderId());
+            logger.error("Shipment not found for step ID {} and driverId {}",
+                    shipmentDTO.getStepId(), shipmentDTO.getDriverId());
             throw new ValidationException(MessageConstants.SHIPMENT_NOT_FOUND.getCode(),
                     MessageConstants.SHIPMENT_NOT_FOUND.getDesc());
         }
         Shipment shipment = shipmentOptional.get();
-        shipment.setStatus(shipmentDTO.getStatus());
         if(shipmentDTO.getCarrier() != null) {
             shipment.setCarrier(shipmentDTO.getCarrier());
         }
+        shipment.setStatus(shipmentDTO.getStatus());
         shipment.setLastUpdateTime(Timestamp.from(Instant.now()));
         shipmentRepository.save(shipment);
-        return getShipmentDTO(shipment);
+        logger.info("Updated shipment {} for user {} and step {}", shipment.getId(),
+                shipment.getDriverId(), shipment.getStepId());
     }
 
     @Override
     public ShipmentDTO getShipment(Short stepId, String driverId) throws ValidationException {
         Optional<Shipment> shipment = shipmentRepository.findByStepIdAndDriverId(stepId, driverId);
+        if(shipment.isEmpty()) {
+            throw new ValidationException(MessageConstants.SHIPMENT_NOT_FOUND.getCode(),
+                    MessageConstants.SHIPMENT_NOT_FOUND.getDesc());
+        }
+        return getShipmentDTO(shipment.get());
+    }
+
+    @Override
+    public ShipmentDTO getShipmentByOrderId(String orderId) throws ValidationException {
+        Optional<Shipment> shipment = shipmentRepository.findByOrderId(orderId);
         if(shipment.isEmpty()) {
             throw new ValidationException(MessageConstants.SHIPMENT_NOT_FOUND.getCode(),
                     MessageConstants.SHIPMENT_NOT_FOUND.getDesc());

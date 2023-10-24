@@ -2,6 +2,7 @@ package com.example.driveronboardingservice.controller;
 
 import com.example.driveronboardingservice.exception.ValidationException;
 import com.example.driveronboardingservice.model.OnboardingStepDTO;
+import com.example.driveronboardingservice.model.request.UpdateOnboardingStepRequest;
 import com.example.driveronboardingservice.service.OnboardingStepService;
 import com.example.driveronboardingservice.util.RequestContextStore;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,8 +38,10 @@ public class OnboardingStepController {
 
     @PutMapping
     @Secured("ADMIN")
-    public void updateStep(@RequestBody OnboardingStepDTO onboardingStepDTO)
+    public void updateStep(@RequestParam Short stepId, @RequestParam String driverId,
+                           @RequestBody UpdateOnboardingStepRequest updateRequest)
             throws ValidationException {
-        onboardingStepService.updateOnboardingStep(onboardingStepDTO);
+        onboardingStepService.updateOnboardingStepStatus(stepId, driverId,
+                updateRequest.isComplete(), updateRequest.getAdditionalComments());
     }
 }

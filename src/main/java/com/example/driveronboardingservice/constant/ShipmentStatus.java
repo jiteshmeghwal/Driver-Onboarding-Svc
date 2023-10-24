@@ -1,10 +1,11 @@
 package com.example.driveronboardingservice.constant;
 
 public enum ShipmentStatus {
-    FAILED((short)0),
-    ORDERED((short)1),
-    SHIPPED((short)2),
-    DELIVERED((short)3);
+    CREATED((short)0),
+    FAILED((short)1),
+    ORDERED((short)2),
+    SHIPPED((short)3),
+    DELIVERED((short)4);
     private final Short code;
 
     private ShipmentStatus(Short code) {
