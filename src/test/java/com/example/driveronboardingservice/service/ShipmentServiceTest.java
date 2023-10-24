@@ -69,6 +69,13 @@ class ShipmentServiceTest {
         shipmentService.getShipment(stepId, driverId);
     }
 
+    @Test
+    void validateShipmentAlreadyExist() {
+        Mockito.when(shipmentRepository.findByStepIdAndDriverId(stepId, driverId)).thenReturn(Optional.of(getMockShipment()));
+        Assertions.assertThrows(ValidationException.class, ()->
+                shipmentService.validateShipmentAlreadyExist(stepId, driverId));
+    }
+
     private Shipment getMockShipment() {
         Shipment shipment = new Shipment();
         shipment.setStatus(ShipmentStatus.SHIPPED.getCode());
