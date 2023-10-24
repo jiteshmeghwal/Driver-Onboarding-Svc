@@ -38,11 +38,12 @@ public class CreateShipmentEventListener {
     @EventListener
     @Transactional
     public void onCreateShipmentEvent(CreateShipmentEvent createShipmentEvent)
-            throws ResourceNotFoundException, ValidationException {
+            throws ResourceNotFoundException {
         try {
             shipmentService.validateShipmentAlreadyExist(createShipmentEvent.getStepId(),
                     createShipmentEvent.getUserId());
-            CreateOrderResponse response = trackingDeviceOrderClient.createOrder(createShipmentEvent.getUserId());
+            CreateOrderResponse response = trackingDeviceOrderClient
+                    .createOrder(createShipmentEvent.getUserId());
             shipmentService.createShipment(ShipmentDTO.builder()
                             .orderId(response.getOrderId())
                             .orderDate(LocalDateTime.now())
@@ -57,6 +58,12 @@ public class CreateShipmentEventListener {
                     createShipmentEvent.getEventType().name(),
                     new Gson().toJson(createShipmentEvent),
                     exception.getMessage()));
+        } catch (ValidationException exception) {
+            logger.error("Failed creating shipment for user {}, cause: {} ", createShipmentEvent.getUserId(),
+                    exception.getDesc());
+        } catch (ResourceNotFoundException exception) {
+            //call should never reach here
+            logger.error("User {} not found", createShipmentEvent.getUserId());
         }
     }
 
