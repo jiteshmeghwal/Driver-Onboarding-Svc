@@ -40,6 +40,8 @@ public class CreateShipmentEventListener {
     public void onCreateShipmentEvent(CreateShipmentEvent createShipmentEvent)
             throws ResourceNotFoundException, ValidationException {
         try {
+            shipmentService.validateShipmentAlreadyExist(createShipmentEvent.getStepId(),
+                    createShipmentEvent.getUserId());
             CreateOrderResponse response = trackingDeviceOrderClient.createOrder(createShipmentEvent.getUserId());
             shipmentService.createShipment(ShipmentDTO.builder()
                             .orderId(response.getOrderId())

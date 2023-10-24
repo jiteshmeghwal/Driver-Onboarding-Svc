@@ -32,7 +32,6 @@ public class ShipmentService implements IShipmentOperations {
 
     @Override
     public void createShipment(ShipmentDTO shipmentDTO) throws ValidationException {
-        validateShipmentAlreadyExist(shipmentDTO.getStepId(), shipmentDTO.getDriverId());
         Shipment shipment = new Shipment();
         shipment.setOrderId(shipmentDTO.getOrderId());
         shipment.setOrderDate(Timestamp.valueOf(shipmentDTO.getOrderDate()));
@@ -44,7 +43,7 @@ public class ShipmentService implements IShipmentOperations {
                 shipment.getId());
     }
 
-    private void validateShipmentAlreadyExist(Short stepId, String driverId) throws ValidationException {
+    public void validateShipmentAlreadyExist(Short stepId, String driverId) throws ValidationException {
         Optional<Shipment> shipment = shipmentRepository.findByStepIdAndDriverId(stepId, driverId);
         if(shipment.isPresent()) {
             throw new ValidationException(MessageConstants.SHIPMENT_ALREADY_EXIST.getCode(),
