@@ -10,6 +10,5 @@ public interface IShipmentOperations {
     void updateShipment(ShipmentDTO shipmentDTO) throws ValidationException;
 
     ShipmentDTO getShipment(Short stepId, String driverId) throws ValidationException;
-    ShipmentDTO getShipmentByOrderId(String orderId) throws ValidationException;
 }
 

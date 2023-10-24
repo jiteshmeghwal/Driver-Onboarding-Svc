@@ -31,15 +31,11 @@ public class ShipmentEventConsumer implements AbstractKafkaConsumer {
         Gson gson = new Gson();
         ShipmentUpdateEvent event = gson.fromJson(record.value(), ShipmentUpdateEvent.class);
         try {
-            ShipmentDTO shipmentDTO = shipmentService.getShipmentByOrderId(event.getOrderId());
-            if(event.getCarrier() != null) shipmentDTO.setCarrier(event.getCarrier());
-            shipmentDTO.setStatus(event.getStatusCd());
-            shipmentService.updateShipment(shipmentDTO);
-            if (ShipmentStatus.DELIVERED.getCode().equals(event.getStatusCd())) {
-                //update step to complete status
-                stepService.updateOnboardingStepStatus(shipmentDTO.getStepId(), shipmentDTO.getDriverId(),
-                        true, null);
-            }
+            shipmentService.updateShipment(ShipmentDTO.builder()
+                            .orderId(event.getOrderId())
+                            .carrier(event.getCarrier())
+                            .status(event.getStatusCd())
+                    .build());
             acknowledgment.acknowledge();
         } catch (Exception exception) {
             logger.error("Failed updating shipment status");

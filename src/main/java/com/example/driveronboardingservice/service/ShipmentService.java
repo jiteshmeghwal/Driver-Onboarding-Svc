@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -53,11 +54,10 @@ public class ShipmentService implements IShipmentOperations {
 
     @Override
     public void updateShipment(ShipmentDTO shipmentDTO) throws ValidationException {
-        Optional<Shipment> shipmentOptional = shipmentRepository.findByStepIdAndDriverId(shipmentDTO.getStepId(),
-                shipmentDTO.getDriverId());
+        Optional<Shipment> shipmentOptional = shipmentRepository.findByOrderId(shipmentDTO.getOrderId());
         if(shipmentOptional.isEmpty()) {
-            logger.error("Shipment not found for step ID {} and driverId {}",
-                    shipmentDTO.getStepId(), shipmentDTO.getDriverId());
+            logger.error("Shipment not found for orderId {}",
+                    shipmentDTO.getOrderId());
             throw new ValidationException(MessageConstants.SHIPMENT_NOT_FOUND.getCode(),
                     MessageConstants.SHIPMENT_NOT_FOUND.getDesc());
         }
@@ -70,21 +70,15 @@ public class ShipmentService implements IShipmentOperations {
         shipmentRepository.save(shipment);
         logger.info("Updated shipment {} for user {} and step {}", shipment.getId(),
                 shipment.getDriverId(), shipment.getStepId());
+        if(Objects.equals(shipment.getStatus(), ShipmentStatus.DELIVERED.getCode())) {
+            onboardingStepService.updateOnboardingStepStatus(shipment.getStepId(),
+                    shipment.getDriverId(), true, null);
+        }
     }
 
     @Override
     public ShipmentDTO getShipment(Short stepId, String driverId) throws ValidationException {
         Optional<Shipment> shipment = shipmentRepository.findByStepIdAndDriverId(stepId, driverId);
-        if(shipment.isEmpty()) {
-            throw new ValidationException(MessageConstants.SHIPMENT_NOT_FOUND.getCode(),
-                    MessageConstants.SHIPMENT_NOT_FOUND.getDesc());
-        }
-        return getShipmentDTO(shipment.get());
-    }
-
-    @Override
-    public ShipmentDTO getShipmentByOrderId(String orderId) throws ValidationException {
-        Optional<Shipment> shipment = shipmentRepository.findByOrderId(orderId);
         if(shipment.isEmpty()) {
             throw new ValidationException(MessageConstants.SHIPMENT_NOT_FOUND.getCode(),
                     MessageConstants.SHIPMENT_NOT_FOUND.getDesc());
