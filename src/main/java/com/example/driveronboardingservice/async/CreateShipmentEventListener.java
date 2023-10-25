@@ -37,8 +37,7 @@ public class CreateShipmentEventListener {
     @Async
     @EventListener
     @Transactional
-    public void onCreateShipmentEvent(CreateShipmentEvent createShipmentEvent)
-            throws ResourceNotFoundException {
+    public void onCreateShipmentEvent(CreateShipmentEvent createShipmentEvent) {
         try {
             shipmentService.validateShipmentAlreadyExist(createShipmentEvent.getStepId(),
                     createShipmentEvent.getUserId());

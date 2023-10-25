@@ -1,6 +1,6 @@
 package com.example.driveronboardingservice.async.kafka.consumer;
 
-import com.example.driveronboardingservice.constant.ShipmentStatus;
+import com.example.driveronboardingservice.exception.ValidationException;
 import com.example.driveronboardingservice.model.ShipmentDTO;
 import com.example.driveronboardingservice.model.event.kafka.ShipmentUpdateEvent;
 import com.example.driveronboardingservice.service.OnboardingStepService;
@@ -21,9 +21,6 @@ public class ShipmentEventConsumer implements AbstractKafkaConsumer {
     @Autowired
     private ShipmentService shipmentService;
 
-    @Autowired
-    private OnboardingStepService stepService;
-
     @Override
     @KafkaListener(topics = "${shipment.update.event.topic}")
     public void consume(ConsumerRecord<String, String> record, Acknowledgment acknowledgment) {
@@ -36,9 +33,10 @@ public class ShipmentEventConsumer implements AbstractKafkaConsumer {
                             .carrier(event.getCarrier())
                             .status(event.getStatusCd())
                     .build());
-            acknowledgment.acknowledge();
-        } catch (Exception exception) {
-            logger.error("Failed updating shipment status");
+        } catch (ValidationException e) {
+            logger.error("Shipment update failed due to, error: {}, cause: {}", e.getDesc(),
+                    e.getMessage());
         }
+        acknowledgment.acknowledge();
     }
 }
