@@ -42,6 +42,7 @@ WHERE object_id = OBJECT_ID(N'[dbo].[onboarding_step_instance]') AND type in (N'
 BEGIN
 CREATE TABLE dbo.onboarding_step_instance (
     complete_ind BIT NOT NULL DEFAULT(0),
+    additional_comments TEXT,
     step_id TINYINT NOT NULL,
     driver_id VARCHAR(6) NOT NULL,
     FOREIGN KEY (step_id) REFERENCES dbo.onboarding_step(step_id),

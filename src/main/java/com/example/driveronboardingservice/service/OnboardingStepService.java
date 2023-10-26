@@ -73,10 +73,7 @@ public class OnboardingStepService implements IOnboardingStepOperations {
                                            String additionalComments) throws ValidationException {
         OnboardingStep onboardingStep = getOnboardingStepsMap().get(stepId);
         OnboardingStepInstance onboardingStepInstance = getOnboardingStepInstance(stepId, driverId);
-        if(onboardingStepInstance.isComplete() == complete) {
-            throw new ValidationException(MessageConstants.STEP_ALREADY_IN_REQUESTED_STATUS.getCode(),
-                    MessageConstants.STEP_ALREADY_IN_REQUESTED_STATUS.getDesc());
-        }
+        validateOnboardingStepUpdateRequest(onboardingStep, onboardingStepInstance, complete);
         onboardingStepInstance.setComplete(complete);
         onboardingStepInstance.setAdditionalComments(additionalComments);
         onboardingStepInstanceRepository.save(onboardingStepInstance);
@@ -151,6 +148,18 @@ public class OnboardingStepService implements IOnboardingStepOperations {
         stepCompleteEvent.setUserId(onboardingStep.getDriverId());
         stepCompleteEvent.setOnboardingStep(onboardingStep);
         return  stepCompleteEvent;
+    }
+
+    private void validateOnboardingStepUpdateRequest(OnboardingStep onboardingStep,
+                                                     OnboardingStepInstance onboardingStepInstance,
+                                                     boolean complete) throws ValidationException {
+        if(onboardingStep == null) {
+            throw new ValidationException(MessageConstants.INVALID_STEP.getCode(), MessageConstants.INVALID_STEP.getDesc());
+        }
+        if(onboardingStepInstance.isComplete() == complete) {
+            throw new ValidationException(MessageConstants.STEP_ALREADY_IN_REQUESTED_STATUS.getCode(),
+                    MessageConstants.STEP_ALREADY_IN_REQUESTED_STATUS.getDesc());
+        }
     }
 
     private OnboardingStepDTO getOnboardingStepDTO(OnboardingStep onboardingStep,
