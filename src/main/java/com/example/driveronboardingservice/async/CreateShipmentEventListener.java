@@ -71,7 +71,7 @@ public class CreateShipmentEventListener {
         failedEvent.setEventType(eventType);
         failedEvent.setEventPayload(eventPayload);
         failedEvent.setErrorMessage(errorMessage);
-        failedEvent.setRetryCount(0);
+        failedEvent.setRetryCount(3);
         failedEvent.setCreatedAt(Timestamp.valueOf(LocalDateTime.now()));
         failedEvent.setNextRetryTime(Timestamp.valueOf(LocalDateTime.now().plus(30,
                 ChronoUnit.MINUTES)));
