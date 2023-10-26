@@ -4,5 +4,6 @@ public enum EventType {
     CREATE_SHIPMENT,
     STEP_UPDATE,
     STEP_COMPLETE,
-    STEP_INCOMPLETE;
+    STEP_INCOMPLETE,
+    PROFILE_VERIFY;
 }
